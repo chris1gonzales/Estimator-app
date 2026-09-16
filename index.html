@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABAS Estimator</title>
+<meta name="description" content="Building automation project cost estimator — labor, materials, sub-labor, misc, final estimate, and progress billing.">
+<meta name="theme-color" content="#1E4E8C">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ABAS Estimator">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#ECEFF2;
+  --panel:#FFFFFF;
+  --panel-alt:#F4F6F8;
+  --ink:#1A2330;
+  --ink-soft:#5B6B7D;
+  --ink-faint:#8996A3;
+  --border:#D3D9DF;
+  --border-strong:#AEB8C2;
+  --blue:#1E4E8C;
+  --blue-dark:#163B6C;
+  --blue-pale:#E7EEF7;
+  --amber:#C97A1A;
+  --amber-pale:#FBF0DF;
+  --teal:#1F7A6C;
+  --teal-pale:#E4F2EF;
+  --red:#B23A2E;
+  --red-pale:#FAE7E4;
+  --radius:3px;
+  --font-ui:'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+  --font-mono:'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161C;
+    --panel:#1A2028;
+    --panel-alt:#1F2630;
+    --ink:#E7EBEF;
+    --ink-soft:#A7B2BE;
+    --ink-faint:#6E7A87;
+    --border:#2C333D;
+    --border-strong:#3B4550;
+    --blue:#5C93D6;
+    --blue-dark:#7FAEE8;
+    --blue-pale:#1C2A3B;
+    --amber:#E3A54B;
+    --amber-pale:#33291A;
+    --teal:#4FB3A0;
+    --teal-pale:#172B27;
+    --red:#E07566;
+    --red-pale:#331E1C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161C;--panel:#1A2028;--panel-alt:#1F2630;--ink:#E7EBEF;--ink-soft:#A7B2BE;
+  --ink-faint:#6E7A87;--border:#2C333D;--border-strong:#3B4550;--blue:#5C93D6;--blue-dark:#7FAEE8;
+  --blue-pale:#1C2A3B;--amber:#E3A54B;--amber-pale:#33291A;--teal:#4FB3A0;--teal-pale:#172B27;
+  --red:#E07566;--red-pale:#331E1C;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-ui);
+  font-size:14px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;}
+input,textarea,select{font-family:inherit;font-size:inherit;color:inherit;}
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+#app{max-width:1180px;margin:0 auto;padding:0 20px 60px;}
+
+.topbar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:16px 0 10px;border-bottom:2px solid var(--ink);margin-bottom:6px;
+}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto;}
+.brand .mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:30px;background:var(--blue);color:#fff;
+  font-family:var(--font-mono);font-weight:600;font-size:15px;flex:none;
+}
+.brand h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.2px;}
+.brand .tagline{font-size:11.5px;color:var(--ink-faint);font-family:var(--font-mono);}
+
+.topbar-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+select, .btn, .icon-btn{
+  border:1px solid var(--border-strong);
+  background:var(--panel);
+  color:var(--ink);
+  padding:7px 11px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-size:12.5px;
+  font-weight:500;
+}
+select{padding:7px 8px;max-width:190px;}
+.btn:hover, .icon-btn:hover, select:hover{border-color:var(--blue);}
+.btn:active, .icon-btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark);}
+.btn-danger{color:var(--red);}
+.btn-danger:hover{border-color:var(--red);}
+.btn[disabled]{opacity:.4;cursor:not-allowed;}
+
+.project-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:4px;
+}
+.project-name-input{
+  font-size:16px;font-weight:600;border:1px solid transparent;background:transparent;
+  padding:4px 6px;border-radius:var(--radius);min-width:160px;flex:1 1 220px;
+}
+.project-name-input:hover{border-color:var(--border);}
+.project-name-input:focus{border-color:var(--blue);outline:none;background:var(--panel);}
+
+.save-status{
+  font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.save-status .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);}
+.save-status.saved .dot{background:var(--teal);}
+.save-status.saving .dot{background:var(--amber);}
+
+/* summary strip */
+.summary-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);margin:14px 0 18px;
+}
+.summary-cell{background:var(--panel);padding:10px 14px;}
+.summary-cell .label{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin-bottom:3px;}
+.summary-cell .value{font-family:var(--font-mono);font-size:16px;font-weight:600;}
+.summary-cell.total{background:var(--blue);}
+.summary-cell.total .label{color:#CFE0F5;}
+.summary-cell.total .value{color:#fff;}
+
+/* tabs — panel-selector style */
+.tabs{display:flex;flex-wrap:wrap;border:1px solid var(--border-strong);background:var(--panel-alt);}
+.tab-btn{
+  flex:1 1 auto;text-align:center;padding:11px 10px;border:none;background:transparent;
+  color:var(--ink-soft);font-weight:600;font-size:12.5px;letter-spacing:.02em;
+  border-right:1px solid var(--border);cursor:pointer;position:relative;
+}
+.tab-btn:last-child{border-right:none;}
+.tab-btn .n{font-family:var(--font-mono);color:var(--ink-faint);margin-right:6px;}
+.tab-btn:hover{background:var(--panel);color:var(--ink);}
+.tab-btn.active{background:var(--panel);color:var(--blue);}
+.tab-btn.active::after{
+  content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--blue);
+}
+
+.tab-panel{background:var(--panel);border:1px solid var(--border-strong);border-top:none;padding:20px;}
+.tab-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
+.tab-header h2{font-size:14px;margin:0;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);}
+.tab-header .hint{font-size:11.5px;color:var(--ink-faint);}
+
+/* meta fields (final estimate tab) */
+.meta-grid{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;margin-bottom:20px;max-width:640px;}
+.meta-grid label{font-size:11.5px;color:var(--ink-soft);align-self:center;text-transform:uppercase;letter-spacing:.04em;}
+.meta-grid input, .meta-grid textarea{
+  border:1px solid var(--border);background:var(--panel-alt);padding:7px 9px;border-radius:var(--radius);width:100%;
+}
+.meta-grid textarea{resize:vertical;min-height:38px;}
+.meta-grid input:focus, .meta-grid textarea:focus{outline:none;border-color:var(--blue);background:var(--panel);}
+
+/* tables */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);}
+table.line-table{border-collapse:collapse;width:100%;min-width:640px;}
+table.line-table th, table.line-table td{border-bottom:1px solid var(--border);padding:0;}
+table.line-table thead th{
+  background:var(--blue);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  text-align:left;padding:8px 10px;font-weight:600;border-bottom:none;white-space:nowrap;
+}
+table.line-table tbody tr:nth-child(even){background:var(--panel-alt);}
+table.line-table tbody tr:hover{background:var(--blue-pale);}
+table.line-table td{padding:0;}
+table.line-table td input{
+  width:100%;border:none;background:transparent;padding:8px 10px;color:var(--ink);
+}
+table.line-table td input:focus{outline:2px solid var(--blue);outline-offset:-2px;background:var(--panel);}
+table.line-table .col-item{width:44px;text-align:center;color:var(--ink-faint);padding:8px 4px;}
+table.line-table .col-total{width:120px;text-align:right;font-weight:600;padding:8px 10px;white-space:nowrap;}
+table.line-table .col-actions{width:36px;text-align:center;}
+table.line-table input[type=number]{text-align:right;font-family:var(--font-mono);}
+.mono{font-family:var(--font-mono);}
+.row-del{
+  border:none;background:transparent;color:var(--ink-faint);cursor:pointer;font-size:13px;
+  width:26px;height:26px;border-radius:var(--radius);
+}
+.row-del:hover{color:var(--red);background:var(--red-pale);}
+table.line-table tfoot td{
+  padding:10px;font-weight:700;background:var(--ink);color:#fff;border-bottom:none;
+}
+table.line-table tfoot .total-label{text-align:right;text-transform:uppercase;font-size:11px;letter-spacing:.05em;}
+table.line-table tfoot .total-value{text-align:right;font-family:var(--font-mono);font-size:14px;color:var(--amber-pale);}
+table.line-table tfoot .total-value{color:#F4C57C;}
+
+.table-toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap;}
+
+/* final estimate table */
+table.final-table{border-collapse:collapse;width:100%;max-width:760px;}
+table.final-table th{
+  background:var(--ink);color:#fff;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  text-align:right;padding:8px 10px;font-weight:600;
+}
+table.final-table th:first-child{text-align:left;}
+table.final-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;}
+table.final-table td:first-child{text-align:left;font-weight:600;color:var(--ink);}
+table.final-table tr:nth-child(even){background:var(--panel-alt);}
+table.final-table input{
+  width:70px;border:1px solid var(--border);background:var(--panel);padding:5px 6px;border-radius:var(--radius);
+  text-align:right;font-family:var(--font-mono);
+}
+table.final-table input:focus{outline:none;border-color:var(--blue);}
+table.final-table .mono{font-family:var(--font-mono);}
+.final-total-row td{font-weight:700;font-size:15px;background:var(--blue)!important;color:#fff;}
+.final-total-row td:first-child{color:#fff;}
+.final-sub-row td{background:var(--amber-pale)!important;font-weight:600;}
+
+/* billing */
+.billing-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:20px;}
+.billing-summary .cell{background:var(--panel);padding:10px 12px;}
+.billing-summary .cell label{display:block;font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.billing-summary .cell input{
+  width:100%;border:1px solid var(--border);background:var(--panel-alt);padding:6px 8px;border-radius:var(--radius);
+  font-family:var(--font-mono);text-align:right;
+}
+.billing-summary .cell .readout{font-family:var(--font-mono);font-size:15px;font-weight:600;}
+.billing-summary .cell .remaining{font-size:11px;color:var(--ink-faint);margin-top:2px;}
+
+table.billing-table{border-collapse:collapse;width:100%;min-width:1080px;font-size:12px;}
+table.billing-table th{background:var(--ink);color:#fff;padding:7px 8px;font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;text-align:right;font-weight:600;}
+table.billing-table th:nth-child(-n+3){text-align:left;}
+table.billing-table td{border-bottom:1px solid var(--border);padding:0;text-align:right;white-space:nowrap;}
+table.billing-table td:nth-child(-n+3){text-align:left;}
+table.billing-table tbody tr:nth-child(even){background:var(--panel-alt);}
+table.billing-table input{width:78px;border:none;background:transparent;padding:7px 8px;text-align:right;font-family:var(--font-mono);}
+table.billing-table input[type=date]{width:118px;}
+table.billing-table input[type=text]{width:70px;text-align:left;}
+table.billing-table input:focus{outline:2px solid var(--blue);outline-offset:-2px;background:var(--panel);}
+table.billing-table tfoot td{background:var(--ink);color:#fff;font-weight:700;padding:8px;font-family:var(--font-mono);}
+
+.empty-state{padding:40px 20px;text-align:center;color:var(--ink-faint);}
+.empty-state p{margin:0 0 14px;}
+
+footer.app-footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--border);color:var(--ink-faint);font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+footer.app-footer a{color:var(--ink-soft);}
+
+/* print */
+@media print{
+  body{background:#fff;}
+  .topbar,.tabs,.table-toolbar,.row-del,.icon-btn,.save-status,footer.app-footer,.no-print{display:none!important;}
+  #app{max-width:100%;padding:0;}
+  .tab-panel{border:none;padding:0;}
+  table.line-table input, table.final-table input, table.billing-table input, .meta-grid input, .meta-grid textarea{
+    border:none!important;background:transparent!important;
+  }
+}
+
+@media (max-width:720px){
+  .summary-strip{grid-template-columns:repeat(2,1fr);}
+  table.line-table{min-width:560px;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   CONFIG — mirrors the original workbook's sheet logic
+   ============================================================ */
+var STORAGE_KEY = "abas_estimator_projects_v1";
+var ACTIVE_KEY = "abas_estimator_active_v1";
+
+var LINE_CONFIG = {
+  labor: {
+    label: "Labor & Scope", short: "Labor",
+    columns: [
+      {key:"scope", label:"Scope of Work", type:"text", placeholder:"e.g. Programming — AHU-1 sequence"},
+      {key:"hours", label:"Hours", type:"number", step:"0.25"},
+      {key:"rate", label:"Hourly Rate", type:"currency", step:"1"}
+    ],
+    computeTotal: function(r){ return (parseFloat(r.hours)||0) * (parseFloat(r.rate)||0); },
+    totalLabel: "Labor Cost",
+    seed: [
+      {scope:"PM Time", hours:"", rate:""},
+      {scope:"Engineering Time", hours:"", rate:""},
+      {scope:"Training Time", hours:"", rate:""}
+    ]
+  },
+  subLabor: {
+    label: "Sub-Labor", short: "Sub-Labor",
+    columns: [
+      {key:"scope", label:"Scope of Work", type:"text", placeholder:"e.g. Electrical sub — conduit run"},
+      {key:"hours", label:"Hours", type:"number", step:"0.25"},
+      {key:"rate", label:"Hourly Rate", type:"currency", step:"1"}
+    ],
+    computeTotal: function(r){ return (parseFloat(r.hours)||0) * (parseFloat(r.rate)||0); },
+    totalLabel: "Sub-Labor Cost",
+    seed: [ {scope:"", hours:"", rate:""} ]
+  },
+  materials: {
+    label: "Materials", short: "Materials",
+    columns: [
+      {key:"desc", label:"Description", type:"text", placeholder:"e.g. Distech ECB-203"},
+      {key:"partNumber", label:"Part Number", type:"text"},
+      {key:"vendor", label:"Vendor", type:"text"},
+      {key:"qty", label:"Qty", type:"number", step:"1"},
+      {key:"unitCost", label:"Unit Cost", type:"currency", step:"0.01"}
+    ],
+    computeTotal: function(r){ return (parseFloat(r.qty)||0) * (parseFloat(r.unitCost)||0); },
+    totalLabel: "Total Material Cost",
+    seed: [ {desc:"", partNumber:"", vendor:"", qty:"", unitCost:""} ]
+  },
+  misc: {
+    label: "Misc", short: "Misc",
+    columns: [
+      {key:"desc", label:"Description", type:"text", placeholder:"e.g. Permit fee"},
+      {key:"partNumber", label:"Part Number", type:"text"},
+      {key:"vendor", label:"Vendor", type:"text"},
+      {key:"qty", label:"Qty", type:"number", step:"1"},
+      {key:"unitCost", label:"Unit Cost", type:"currency", step:"0.01"}
+    ],
+    computeTotal: function(r){ return (parseFloat(r.qty)||0) * (parseFloat(r.unitCost)||0); },
+    totalLabel: "Total Misc. Cost",
+    seed: [ {desc:"", partNumber:"", vendor:"", qty:"", unitCost:""} ]
+  }
+};
+
+var TAB_ORDER = ["labor","materials","subLabor","misc","final","billing"];
+var TAB_LABELS = {labor:"Labor & Scope", materials:"Materials", subLabor:"Sub-Labor", misc:"Misc", final:"Final Estimate", billing:"Billing"};
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function uid(){ return 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+function fmtCurrency(n){
+  n = isFinite(n) ? n : 0;
+  return n.toLocaleString('en-US', {style:'currency', currency:'USD'});
+}
+function fmtNum(n, d){
+  n = isFinite(n) ? n : 0;
+  return n.toLocaleString('en-US', {minimumFractionDigits:d||0, maximumFractionDigits:d||2});
+}
+function esc(s){
+  return (s===undefined||s===null?'':String(s)).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function debounce(fn, ms){
+  var t;
+  return function(){
+    var args = arguments, ctx = this;
+    clearTimeout(t);
+    t = setTimeout(function(){ fn.apply(ctx, args); }, ms);
+  };
+}
+function clamp(n,min,max){ return Math.min(max, Math.max(min, n)); }
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+function loadAllProjects(){
+  try{
+    var raw = localStorage.getItem(STORAGE_KEY);
+    var list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  }catch(e){ console.error('Failed to load projects', e); return []; }
+}
+function saveAllProjects(list){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    return true;
+  }catch(e){ console.error('Failed to save projects', e); return false; }
+}
+function getActiveId(){
+  try{ return localStorage.getItem(ACTIVE_KEY); }catch(e){ return null; }
+}
+function setActiveId(id){
+  try{ localStorage.setItem(ACTIVE_KEY, id); }catch(e){}
+}
+
+/* ============================================================
+   PROJECT MODEL
+   ============================================================ */
+function makeRow(cols){
+  var r = {};
+  cols.forEach(function(c){ r[c.key] = ""; });
+  return r;
+}
+function makeDefaultData(){
+  var data = {};
+  Object.keys(LINE_CONFIG).forEach(function(key){
+    var cfg = LINE_CONFIG[key];
+    data[key] = (cfg.seed || [makeRow(cfg.columns)]).map(function(seedRow){
+      var r = makeRow(cfg.columns);
+      Object.keys(seedRow).forEach(function(k){ r[k] = seedRow[k]; });
+      return r;
+    });
+  });
+  data.meta = { client:"", date:"", scope:"" };
+  data.final = {
+    marginLabor: 35, marginMaterial: 35, marginSubLabor: 35, marginMisc: 35,
+    warrantyPct: 5, tripCharge: 0, freightCost: 0, taxPct: 8.25
+  };
+  data.billing = {
+    retainagePct: 10,
+    contractLabor: null, contractMaterials: null, contractSubContr: null, contractMisc: null,
+    changeOrderAmount: 0,
+    cycles: [ makeCycleRow() ]
+  };
+  return data;
+}
+function makeCycleRow(){
+  return {date:"", invoiceNo:"", laborPct:"", materialsPct:"", subContrPct:"", miscPct:"", changeOrderPct:""};
+}
+function makeProject(name){
+  return { id: uid(), name: name || "Untitled Estimate", updatedAt: Date.now(), data: makeDefaultData() };
+}
+
+/* ============================================================
+   DERIVED CALCULATIONS
+   ============================================================ */
+function computeDerived(data){
+  var laborTotal = data.labor.reduce(function(s,r){ return s + LINE_CONFIG.labor.computeTotal(r); }, 0);
+  var materialTotal = data.materials.reduce(function(s,r){ return s + LINE_CONFIG.materials.computeTotal(r); }, 0);
+  var subLaborTotal = data.subLabor.reduce(function(s,r){ return s + LINE_CONFIG.subLabor.computeTotal(r); }, 0);
+  var miscTotal = data.misc.reduce(function(s,r){ return s + LINE_CONFIG.misc.computeTotal(r); }, 0);
+
+  var f = data.final;
+  function marginRow(cost, marginPct){
+    var m = (parseFloat(marginPct)||0)/100;
+    var marginDollars = m >= 1 ? 0 : cost / (1 - m) - cost;
+    var costPlusMargin = cost + marginDollars;
+    return {cost:cost, marginDollars:marginDollars, costPlusMargin:costPlusMargin};
+  }
+  var rowLabor = marginRow(laborTotal, f.marginLabor);
+  var rowMaterial = marginRow(materialTotal, f.marginMaterial);
+  var rowSubLabor = marginRow(subLaborTotal, f.marginSubLabor);
+  var rowMisc = marginRow(miscTotal, f.marginMisc);
+
+  var sumCost = rowLabor.cost + rowMaterial.cost + rowSubLabor.cost + rowMisc.cost;
+  var sumMargin = rowLabor.marginDollars + rowMaterial.marginDollars + rowSubLabor.marginDollars + rowMisc.marginDollars;
+  var sumCostPlusMargin = rowLabor.costPlusMargin + rowMaterial.costPlusMargin + rowSubLabor.costPlusMargin + rowMisc.costPlusMargin;
+
+  var warrantyAmt = (parseFloat(f.warrantyPct)||0)/100 * sumCostPlusMargin;
+  var tripCharge = parseFloat(f.tripCharge)||0;
+  var freightCost = parseFloat(f.freightCost)||0;
+  var subtotalCost = sumCostPlusMargin + warrantyAmt + tripCharge + freightCost;
+  var taxAmt = (parseFloat(f.taxPct)||0)/100 * subtotalCost;
+  var totalCost = subtotalCost + taxAmt;
+
+  var finalCalc = {
+    labor: rowLabor, material: rowMaterial, subLabor: rowSubLabor, misc: rowMisc,
+    sumCost: sumCost, sumMargin: sumMargin, sumCostPlusMargin: sumCostPlusMargin,
+    warrantyAmt: warrantyAmt, tripCharge: tripCharge, freightCost: freightCost,
+    subtotalCost: subtotalCost, taxAmt: taxAmt, totalCost: totalCost
+  };
+
+  var b = data.billing;
+  var contractLabor = b.contractLabor !== null && b.contractLabor !== "" && b.contractLabor !== undefined ? parseFloat(b.contractLabor)||0 : rowLabor.costPlusMargin;
+  var contractMaterials = b.contractMaterials !== null && b.contractMaterials !== "" && b.contractMaterials !== undefined ? parseFloat(b.contractMaterials)||0 : rowMaterial.costPlusMargin;
+  var contractSubContr = b.contractSubContr !== null && b.contractSubContr !== "" && b.contractSubContr !== undefined ? parseFloat(b.contractSubContr)||0 : rowSubLabor.costPlusMargin;
+  var contractMisc = b.contractMisc !== null && b.contractMisc !== "" && b.contractMisc !== undefined ? parseFloat(b.contractMisc)||0 : (rowMisc.costPlusMargin + warrantyAmt);
+  var contractSubTotal = contractLabor + contractMaterials + contractSubContr + contractMisc;
+  var changeOrderAmount = parseFloat(b.changeOrderAmount)||0;
+  var totalContract = contractSubTotal + changeOrderAmount;
+  var retainagePct = (parseFloat(b.retainagePct)||0)/100;
+
+  var cycles = (b.cycles||[]).map(function(c){
+    var laborAmt = (parseFloat(c.laborPct)||0)/100 * contractLabor;
+    var materialsAmt = (parseFloat(c.materialsPct)||0)/100 * contractMaterials;
+    var subContrAmt = (parseFloat(c.subContrPct)||0)/100 * contractSubContr;
+    var miscAmt = (parseFloat(c.miscPct)||0)/100 * contractMisc;
+    var changeAmt = (parseFloat(c.changeOrderPct)||0)/100 * changeOrderAmount;
+    var subTotalAmt = laborAmt + materialsAmt + subContrAmt + miscAmt + changeAmt;
+    var retainageAmt = subTotalAmt * retainagePct;
+    var totalAmt = subTotalAmt - retainageAmt;
+    return {laborAmt:laborAmt, materialsAmt:materialsAmt, subContrAmt:subContrAmt, miscAmt:miscAmt, changeAmt:changeAmt, subTotalAmt:subTotalAmt, retainageAmt:retainageAmt, totalAmt:totalAmt};
+  });
+  var running = 0;
+  cycles.forEach(function(c){ running += c.totalAmt; c.runningTotal = running; });
+
+  var billedLabor=0, billedMaterials=0, billedSubContr=0, billedMisc=0, billedChange=0, billedSub=0, billedRetain=0, billedTotal=0;
+  cycles.forEach(function(c){
+    billedLabor+=c.laborAmt; billedMaterials+=c.materialsAmt; billedSubContr+=c.subContrAmt;
+    billedMisc+=c.miscAmt; billedChange+=c.changeAmt; billedSub+=c.subTotalAmt; billedRetain+=c.retainageAmt; billedTotal+=c.totalAmt;
+  });
+
+  var billingCalc = {
+    contractLabor:contractLabor, contractMaterials:contractMaterials, contractSubContr:contractSubContr, contractMisc:contractMisc,
+    contractSubTotal:contractSubTotal, changeOrderAmount:changeOrderAmount, totalContract:totalContract,
+    remainingLabor: contractLabor - billedLabor, remainingMaterials: contractMaterials - billedMaterials,
+    remainingSubContr: contractSubContr - billedSubContr, remainingMisc: contractMisc - billedMisc,
+    remainingSubTotal: contractSubTotal - billedSub, remainingChange: changeOrderAmount - billedChange,
+    remainingTotal: totalContract - billedTotal, retainageBilled: billedRetain,
+    cycles: cycles
+  };
+
+  return {
+    laborTotal: laborTotal, materialTotal: materialTotal, subLaborTotal: subLaborTotal, miscTotal: miscTotal,
+    final: finalCalc, billing: billingCalc
+  };
+}
+
+/* ============================================================
+   APPLICATION STATE
+   ============================================================ */
+var projects = loadAllProjects();
+var current = null;
+var activeTab = "labor";
+var installPromptAvailable = false;
+
+function ensureProject(){
+  if (projects.length === 0){
+    var p = makeProject("Sample Estimate");
+    projects.push(p);
+    saveAllProjects(projects);
+  }
+  var activeId = getActiveId();
+  current = projects.find(function(p){ return p.id === activeId; }) || projects[0];
+  setActiveId(current.id);
+}
+ensureProject();
+
+var saveStatusTimer = null;
+var persist = debounce(function(){
+  current.updatedAt = Date.now();
+  var idx = projects.findIndex(function(p){ return p.id === current.id; });
+  if (idx >= 0) projects[idx] = current;
+  saveAllProjects(projects);
+  setSaveStatus('saved');
+}, 350);
+
+function setSaveStatus(mode){
+  var el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.className = 'save-status ' + mode;
+  el.querySelector('.txt').textContent = mode === 'saving' ? 'Saving…' : (mode === 'saved' ? 'Saved' : 'Ready');
+}
+function markDirty(){
+  setSaveStatus('saving');
+  persist();
+}
+
+/* ============================================================
+   RENDER: SHELL
+   ============================================================ */
+function render(){
+  var app = document.getElementById('app');
+  var d = computeDerived(current.data);
+  app.innerHTML =
+    renderTopbar() +
+    renderProjectRow() +
+    renderSummaryStrip(d) +
+    renderTabs() +
+    '<div class="tab-panel" id="tabPanel">' + renderTabContent(activeTab, d) + '</div>' +
+    renderFooter();
+  wireGlobalEvents();
+}
+
+function renderTopbar(){
+  var options = projects.slice().sort(function(a,b){ return b.updatedAt - a.updatedAt; }).map(function(p){
+    return '<option value="'+esc(p.id)+'"'+(p.id===current.id?' selected':'')+'>'+esc(p.name)+'</option>';
+  }).join('');
+  return ''+
+  '<div class="topbar">'+
+    '<div class="brand"><span class="mark">A</span><div><h1>ABAS Estimator</h1><div class="tagline">Building automation project cost tool</div></div></div>'+
+    '<div class="topbar-controls">'+
+      '<select id="projectSelect" title="Switch estimate">'+options+'</select>'+
+      '<button class="icon-btn" data-action="new-project" title="New estimate">+ New</button>'+
+      '<button class="icon-btn" data-action="duplicate-project" title="Duplicate this estimate">Duplicate</button>'+
+      '<button class="icon-btn btn-danger" data-action="delete-project" title="Delete this estimate" '+(projects.length<=1?'disabled':'')+'>Delete</button>'+
+      '<button class="icon-btn" data-action="export-json" title="Export this estimate as JSON">Export</button>'+
+      '<button class="icon-btn" data-action="import-json" title="Import an estimate JSON file">Import</button>'+
+      '<button class="icon-btn" data-action="print" title="Print / save as PDF">Print</button>'+
+      '<button class="icon-btn btn-primary" id="installBtn" data-action="install" title="Install as an app" style="display:'+(installPromptAvailable?'':'none')+'">Install</button>'+
+      '<input type="file" id="importFile" accept="application/json" style="display:none">'+
+    '</div>'+
+  '</div>';
+}
+
+function renderProjectRow(){
+  return ''+
+  '<div class="project-row">'+
+    '<input class="project-name-input" id="projectNameInput" value="'+esc(current.name)+'" placeholder="Estimate name">'+
+    '<span class="save-status saved" id="saveStatus"><span class="dot"></span><span class="txt">Saved</span></span>'+
+  '</div>';
+}
+
+function renderSummaryStrip(d){
+  return ''+
+  '<div class="summary-strip">'+
+    '<div class="summary-cell"><div class="label">Labor</div><div class="value">'+fmtCurrency(d.laborTotal)+'</div></div>'+
+    '<div class="summary-cell"><div class="label">Materials</div><div class="value">'+fmtCurrency(d.materialTotal)+'</div></div>'+
+    '<div class="summary-cell"><div class="label">Sub-Labor</div><div class="value">'+fmtCurrency(d.subLaborTotal)+'</div></div>'+
+    '<div class="summary-cell"><div class="label">Misc</div><div class="value">'+fmtCurrency(d.miscTotal)+'</div></div>'+
+    '<div class="summary-cell total"><div class="label">Total (w/ tax)</div><div class="value">'+fmtCurrency(d.final.totalCost)+'</div></div>'+
+  '</div>';
+}
+
+function renderTabs(){
+  return '<div class="tabs">' + TAB_ORDER.map(function(key, i){
+    return '<button class="tab-btn'+(activeTab===key?' active':'')+'" data-action="tab" data-tab="'+key+'"><span class="n">0'+(i+1)+'</span>'+TAB_LABELS[key]+'</button>';
+  }).join('') + '</div>';
+}
+
+function renderFooter(){
+  return ''+
+  '<footer class="app-footer">'+
+    '<span>Stored locally in this browser · nothing leaves your device</span>'+
+    '<span>Estimate ID: '+esc(current.id)+'</span>'+
+  '</footer>';
+}
+
+/* ============================================================
+   RENDER: TAB CONTENT DISPATCH
+   ============================================================ */
+function renderTabContent(tab, d){
+  if (LINE_CONFIG[tab]) return renderLineTab(tab, d);
+  if (tab === 'final') return renderFinalTab(d);
+  if (tab === 'billing') return renderBillingTab(d);
+  return '';
+}
+
+/* ---- line-item tabs (labor / materials / subLabor / misc) ---- */
+function renderLineTab(key, d){
+  var cfg = LINE_CONFIG[key];
+  var rows = current.data[key];
+  var total = rows.reduce(function(s,r){ return s + cfg.computeTotal(r); }, 0);
+
+  var thead = '<tr><th class="col-item">Item</th>' + cfg.columns.map(function(c){ return '<th>'+esc(c.label)+'</th>'; }).join('') + '<th class="col-total">Subtotal</th><th class="col-actions"></th></tr>';
+
+  var tbody = rows.map(function(r, idx){
+    var t = cfg.computeTotal(r);
+    var cells = cfg.columns.map(function(c){ return cellHtml(key, idx, c, r[c.key]); }).join('');
+    return '<tr>'+
+      '<td class="col-item mono">'+(idx+1)+'</td>'+
+      cells+
+      '<td class="col-total mono" id="rowtotal-'+key+'-'+idx+'">'+fmtCurrency(t)+'</td>'+
+      '<td class="col-actions"><button class="row-del" data-action="del-row" data-section="'+key+'" data-idx="'+idx+'" title="Remove row">&#10005;</button></td>'+
+    '</tr>';
+  }).join('');
+
+  var tfoot = '<tr><td colspan="'+(cfg.columns.length+1)+'" class="total-label">'+cfg.totalLabel+'</td>'+
+    '<td class="col-total mono total-value" id="sectiontotal-'+key+'">'+fmtCurrency(total)+'</td><td></td></tr>';
+
+  return ''+
+  '<div class="tab-header"><h2>'+esc(cfg.label)+'</h2><div class="hint">'+rows.length+' line item'+(rows.length===1?'':'s')+'</div></div>'+
+  '<div class="table-wrap"><table class="line-table" id="table-'+key+'"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody><tfoot>'+tfoot+'</tfoot></table></div>'+
+  '<div class="table-toolbar">'+
+    '<button class="btn" data-action="add-row" data-section="'+key+'">+ Add line item</button>'+
+    '<button class="btn" data-action="export-csv" data-section="'+key+'">Export CSV</button>'+
+  '</div>';
+}
+
+function cellHtml(section, idx, col, value){
+  var type = col.type === 'text' ? 'text' : 'number';
+  var step = col.step ? ' step="'+col.step+'"' : '';
+  var ph = col.placeholder ? ' placeholder="'+esc(col.placeholder)+'"' : '';
+  return '<td><input type="'+type+'"'+step+ph+' value="'+esc(value)+'" '+
+    'data-role="line-field" data-section="'+section+'" data-idx="'+idx+'" data-key="'+col.key+'" data-type="'+(type==='text'?'text':'number')+'"></td>';
+}
+
+/* ---- final estimate tab ---- */
+function renderFinalTab(d){
+  var m = current.data.meta;
+  var f = current.data.final;
+  var fc = d.final;
+
+  function row(label, cost, marginKey, marginVal, marginDollars, costPlusMargin, id){
+    return '<tr>'+
+      '<td>'+label+'</td>'+
+      '<td class="mono" id="fc-cost-'+id+'">'+fmtCurrency(cost)+'</td>'+
+      '<td><input type="number" step="0.1" value="'+esc(marginVal)+'" data-role="final-field" data-key="'+marginKey+'" data-type="number"> %</td>'+
+      '<td class="mono" id="fc-margin-'+id+'">'+fmtCurrency(marginDollars)+'</td>'+
+      '<td class="mono" id="fc-cpm-'+id+'">'+fmtCurrency(costPlusMargin)+'</td>'+
+    '</tr>';
+  }
+
+  var html = ''+
+  '<div class="tab-header"><h2>Cost Estimate Summary</h2><div class="hint">Pulls totals from all sheets</div></div>'+
+  '<div class="meta-grid">'+
+    '<label>Client</label><input type="text" value="'+esc(m.client)+'" data-role="meta-field" data-key="client" placeholder="Client / company name">'+
+    '<label>Date</label><input type="date" value="'+esc(m.date)+'" data-role="meta-field" data-key="date">'+
+    '<label>Scope</label><textarea data-role="meta-field" data-key="scope" placeholder="One-line project scope">'+esc(m.scope)+'</textarea>'+
+  '</div>'+
+  '<div class="table-wrap"><table class="final-table">'+
+    '<thead><tr><th style="text-align:left">&nbsp;</th><th>Cost</th><th>Margin (%)</th><th>Margin ($)</th><th>Cost + Margin</th></tr></thead>'+
+    '<tbody>'+
+      row('Labor Total', d.laborTotal, 'marginLabor', f.marginLabor, fc.labor.marginDollars, fc.labor.costPlusMargin, 'labor')+
+      row('Material Total', d.materialTotal, 'marginMaterial', f.marginMaterial, fc.material.marginDollars, fc.material.costPlusMargin, 'material')+
+      row('Sub-Labor Total', d.subLaborTotal, 'marginSubLabor', f.marginSubLabor, fc.subLabor.marginDollars, fc.subLabor.costPlusMargin, 'subLabor')+
+      row('Misc Total', d.miscTotal, 'marginMisc', f.marginMisc, fc.misc.marginDollars, fc.misc.costPlusMargin, 'misc')+
+      '<tr class="final-sub-row"><td>Subtotal</td><td class="mono" id="fc-cost-sum">'+fmtCurrency(fc.sumCost)+'</td><td></td><td class="mono" id="fc-margin-sum">'+fmtCurrency(fc.sumMargin)+'</td><td class="mono" id="fc-cpm-sum">'+fmtCurrency(fc.sumCostPlusMargin)+'</td></tr>'+
+      '<tr><td>Warranty</td><td></td><td><input type="number" step="0.1" value="'+esc(f.warrantyPct)+'" data-role="final-field" data-key="warrantyPct" data-type="number"> %</td><td></td><td class="mono" id="fc-warranty">'+fmtCurrency(fc.warrantyAmt)+'</td></tr>'+
+      '<tr><td>Trip Charge</td><td></td><td colspan="2"><input type="number" step="1" value="'+esc(f.tripCharge)+'" data-role="final-field" data-key="tripCharge" data-type="number"></td><td class="mono" id="fc-trip">'+fmtCurrency(fc.tripCharge)+'</td></tr>'+
+      '<tr><td>Freight Cost</td><td></td><td colspan="2"><input type="number" step="1" value="'+esc(f.freightCost)+'" data-role="final-field" data-key="freightCost" data-type="number"></td><td class="mono" id="fc-freight">'+fmtCurrency(fc.freightCost)+'</td></tr>'+
+      '<tr class="final-sub-row"><td>Subtotal Cost</td><td></td><td></td><td></td><td class="mono" id="fc-subtotal">'+fmtCurrency(fc.subtotalCost)+'</td></tr>'+
+      '<tr><td>Tax</td><td></td><td><input type="number" step="0.01" value="'+esc(f.taxPct)+'" data-role="final-field" data-key="taxPct" data-type="number"> %</td><td></td><td class="mono" id="fc-tax">'+fmtCurrency(fc.taxAmt)+'</td></tr>'+
+      '<tr class="final-total-row"><td>Total Cost</td><td></td><td></td><td></td><td class="mono" id="fc-total">'+fmtCurrency(fc.totalCost)+'</td></tr>'+
+    '</tbody>'+
+  '</table></div>';
+  return html;
+}
+
+/* ---- billing tab ---- */
+function renderBillingTab(d){
+  var b = current.data.billing;
+  var bc = d.billing;
+
+  function contractField(label, key, computedVal, remainingVal, id){
+    var raw = b[key];
+    var placeholder = fmtCurrency(computedVal);
+    return '<div class="cell">'+
+      '<label>'+label+'</label>'+
+      '<input type="number" step="1" value="'+(raw===null||raw===undefined?'':esc(raw))+'" placeholder="'+placeholder+'" data-role="billing-field" data-key="'+key+'" data-type="number">'+
+      '<div class="remaining" id="bc-remaining-'+id+'">Remaining: '+fmtCurrency(remainingVal)+'</div>'+
+    '</div>';
+  }
+
+  var summary = ''+
+  '<div class="billing-summary">'+
+    contractField('Labor Contract $', 'contractLabor', bc.contractLabor, bc.remainingLabor, 'labor')+
+    contractField('Materials Contract $', 'contractMaterials', bc.contractMaterials, bc.remainingMaterials, 'materials')+
+    contractField('Sub-Contr Contract $', 'contractSubContr', bc.contractSubContr, bc.remainingSubContr, 'subContr')+
+    contractField('Misc + Wnty Contract $', 'contractMisc', bc.contractMisc, bc.remainingMisc, 'misc')+
+    '<div class="cell"><label>Change Order $</label><input type="number" step="1" value="'+esc(b.changeOrderAmount)+'" data-role="billing-field" data-key="changeOrderAmount" data-type="number"><div class="remaining" id="bc-remaining-change">Remaining: '+fmtCurrency(bc.remainingChange)+'</div></div>'+
+    '<div class="cell"><label>Retainage %</label><input type="number" step="0.5" value="'+esc(b.retainagePct)+'" data-role="billing-field" data-key="retainagePct" data-type="number"><div class="remaining">Held from each invoice</div></div>'+
+    '<div class="cell"><label>Total Contract Amount</label><div class="readout" id="bc-total-contract">'+fmtCurrency(bc.totalContract)+'</div></div>'+
+    '<div class="cell"><label>Amount Remaining</label><div class="readout" id="bc-remaining-total">'+fmtCurrency(bc.remainingTotal)+'</div></div>'+
+  '</div>';
+
+  var thead = '<tr>'+
+    '<th>#</th><th>Invoice Date</th><th>Invoice No.</th>'+
+    '<th>Labor %</th><th>Labor $</th><th>Materials %</th><th>Materials $</th>'+
+    '<th>Sub-Contr %</th><th>Sub-Contr $</th><th>Misc %</th><th>Misc $</th>'+
+    '<th>Chg Order %</th><th>Chg Order $</th><th>Subtotal $</th><th>Retainage</th><th>Total $</th><th>Running Total</th><th></th>'+
+  '</tr>';
+
+  var tbody = b.cycles.map(function(c, idx){
+    var cc = bc.cycles[idx];
+    return '<tr>'+
+      '<td class="mono">'+(idx+1)+'</td>'+
+      '<td><input type="date" value="'+esc(c.date)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="date" data-type="text"></td>'+
+      '<td><input type="text" value="'+esc(c.invoiceNo)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="invoiceNo" data-type="text"></td>'+
+      '<td><input type="number" step="1" value="'+esc(c.laborPct)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="laborPct" data-type="number"></td>'+
+      '<td class="mono" id="cyc-laborAmt-'+idx+'">'+fmtCurrency(cc.laborAmt)+'</td>'+
+      '<td><input type="number" step="1" value="'+esc(c.materialsPct)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="materialsPct" data-type="number"></td>'+
+      '<td class="mono" id="cyc-materialsAmt-'+idx+'">'+fmtCurrency(cc.materialsAmt)+'</td>'+
+      '<td><input type="number" step="1" value="'+esc(c.subContrPct)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="subContrPct" data-type="number"></td>'+
+      '<td class="mono" id="cyc-subContrAmt-'+idx+'">'+fmtCurrency(cc.subContrAmt)+'</td>'+
+      '<td><input type="number" step="1" value="'+esc(c.miscPct)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="miscPct" data-type="number"></td>'+
+      '<td class="mono" id="cyc-miscAmt-'+idx+'">'+fmtCurrency(cc.miscAmt)+'</td>'+
+      '<td><input type="number" step="1" value="'+esc(c.changeOrderPct)+'" data-role="cycle-field" data-idx="'+idx+'" data-key="changeOrderPct" data-type="number"></td>'+
+      '<td class="mono" id="cyc-changeAmt-'+idx+'">'+fmtCurrency(cc.changeAmt)+'</td>'+
+      '<td class="mono" id="cyc-subTotalAmt-'+idx+'">'+fmtCurrency(cc.subTotalAmt)+'</td>'+
+      '<td class="mono" id="cyc-retainageAmt-'+idx+'">'+fmtCurrency(cc.retainageAmt)+'</td>'+
+      '<td class="mono" id="cyc-totalAmt-'+idx+'">'+fmtCurrency(cc.totalAmt)+'</td>'+
+      '<td class="mono" id="cyc-runningTotal-'+idx+'">'+fmtCurrency(cc.runningTotal)+'</td>'+
+      '<td><button class="row-del" data-action="del-cycle" data-idx="'+idx+'" title="Remove invoice">&#10005;</button></td>'+
+    '</tr>';
+  }).join('');
+
+  var tfoot = '<tr><td colspan="13" style="text-align:right">Totals</td>'+
+    '<td id="cyc-total-subTotalAmt">'+fmtCurrency(sumCycles(bc,'subTotalAmt'))+'</td>'+
+    '<td id="cyc-total-retainageAmt">'+fmtCurrency(sumCycles(bc,'retainageAmt'))+'</td>'+
+    '<td id="cyc-total-totalAmt">'+fmtCurrency(sumCycles(bc,'totalAmt'))+'</td>'+
+    '<td colspan="2"></td></tr>';
+
+  return ''+
+  '<div class="tab-header"><h2>Billing</h2><div class="hint">Progress billing across invoice cycles, with retainage</div></div>'+
+  summary+
+  '<div class="table-wrap"><table class="billing-table" id="billingTable"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody><tfoot>'+tfoot+'</tfoot></table></div>'+
+  '<div class="table-toolbar">'+
+    '<button class="btn" data-action="add-cycle">+ Add invoice cycle</button>'+
+    '<button class="btn" data-action="export-csv" data-section="billing">Export CSV</button>'+
+  '</div>';
+}
+function sumCycles(bc, key){ return bc.cycles.reduce(function(s,c){ return s + c[key]; }, 0); }
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+function wireGlobalEvents(){
+  var app = document.getElementById('app');
+
+  app.addEventListener('input', onInput);
+  app.addEventListener('click', onClick);
+  app.addEventListener('change', function(e){
+    if (e.target.id === 'projectSelect') switchProject(e.target.value);
+    if (e.target.id === 'importFile') handleImportFile(e.target.files[0]);
+  });
+
+  var nameInput = document.getElementById('projectNameInput');
+  if (nameInput){
+    nameInput.addEventListener('input', function(e){
+      current.name = e.target.value;
+      markDirty();
+      var opt = document.querySelector('#projectSelect option[value="'+current.id+'"]');
+      if (opt) opt.textContent = current.name || 'Untitled Estimate';
+    });
+  }
+}
+
+function onInput(e){
+  var t = e.target;
+  var role = t.dataset.role;
+  if (!role) return;
+
+  if (role === 'line-field'){
+    var section = t.dataset.section, idx = parseInt(t.dataset.idx,10), key = t.dataset.key, type = t.dataset.type;
+    var val = type === 'number' ? t.value : t.value;
+    current.data[section][idx][key] = val;
+    updateLineRow(section, idx);
+    markDirty();
+  } else if (role === 'meta-field'){
+    current.data.meta[t.dataset.key] = t.value;
+    markDirty();
+  } else if (role === 'final-field'){
+    current.data.final[t.dataset.key] = t.value;
+    refreshFinalTab();
+    refreshSummaryStrip();
+    markDirty();
+  } else if (role === 'billing-field'){
+    var bkey = t.dataset.key;
+    current.data.billing[bkey] = t.value === '' ? (bkey.indexOf('contract')===0 ? null : 0) : t.value;
+    refreshBillingTab();
+    markDirty();
+  } else if (role === 'cycle-field'){
+    var cidx = parseInt(t.dataset.idx,10);
+    current.data.billing.cycles[cidx][t.dataset.key] = t.value;
+    refreshBillingTab();
+    markDirty();
+  }
+}
+
+function onClick(e){
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var action = btn.dataset.action;
+
+  if (action === 'tab'){
+    activeTab = btn.dataset.tab;
+    render();
+    return;
+  }
+  if (action === 'add-row'){
+    var section = btn.dataset.section;
+    current.data[section].push(makeRow(LINE_CONFIG[section].columns));
+    markDirty();
+    render();
+    return;
+  }
+  if (action === 'del-row'){
+    var s = btn.dataset.section, i = parseInt(btn.dataset.idx,10);
+    if (current.data[s].length <= 1){
+      current.data[s][i] = makeRow(LINE_CONFIG[s].columns);
+    } else {
+      current.data[s].splice(i,1);
+    }
+    markDirty();
+    render();
+    return;
+  }
+  if (action === 'add-cycle'){
+    current.data.billing.cycles.push(makeCycleRow());
+    markDirty();
+    render();
+    return;
+  }
+  if (action === 'del-cycle'){
+    var ci = parseInt(btn.dataset.idx,10);
+    if (current.data.billing.cycles.length <= 1){
+      current.data.billing.cycles[ci] = makeCycleRow();
+    } else {
+      current.data.billing.cycles.splice(ci,1);
+    }
+    markDirty();
+    render();
+    return;
+  }
+  if (action === 'new-project'){
+    var name = prompt('Name for the new estimate:', 'New Estimate');
+    if (name === null) return;
+    var p = makeProject(name || 'Untitled Estimate');
+    projects.push(p);
+    current = p;
+    setActiveId(p.id);
+    saveAllProjects(projects);
+    activeTab = 'labor';
+    render();
+    return;
+  }
+  if (action === 'duplicate-project'){
+    var copy = JSON.parse(JSON.stringify(current));
+    copy.id = uid();
+    copy.name = current.name + ' (copy)';
+    copy.updatedAt = Date.now();
+    projects.push(copy);
+    current = copy;
+    setActiveId(copy.id);
+    saveAllProjects(projects);
+    render();
+    return;
+  }
+  if (action === 'delete-project'){
+    if (projects.length <= 1) return;
+    if (!confirm('Delete "'+current.name+'"? This cannot be undone.')) return;
+    projects = projects.filter(function(p){ return p.id !== current.id; });
+    saveAllProjects(projects);
+    current = projects[0];
+    setActiveId(current.id);
+    render();
+    return;
+  }
+  if (action === 'export-json'){
+    exportProjectJSON();
+    return;
+  }
+  if (action === 'import-json'){
+    document.getElementById('importFile').click();
+    return;
+  }
+  if (action === 'print'){
+    window.print();
+    return;
+  }
+  if (action === 'install'){
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.finally(function(){
+      deferredInstallPrompt = null;
+      installPromptAvailable = false;
+      var b = document.getElementById('installBtn');
+      if (b) b.style.display = 'none';
+    });
+    return;
+  }
+  if (action === 'export-csv'){
+    exportCSV(btn.dataset.section);
+    return;
+  }
+}
+
+function switchProject(id){
+  var p = projects.find(function(p){ return p.id === id; });
+  if (!p) return;
+  current = p;
+  setActiveId(id);
+  activeTab = 'labor';
+  render();
+}
+
+/* ---- targeted (non full-rerender) updates to keep input focus ---- */
+function updateLineRow(section, idx){
+  var cfg = LINE_CONFIG[section];
+  var row = current.data[section][idx];
+  var t = cfg.computeTotal(row);
+  var rowEl = document.getElementById('rowtotal-'+section+'-'+idx);
+  if (rowEl) rowEl.textContent = fmtCurrency(t);
+  var total = current.data[section].reduce(function(s,r){ return s + cfg.computeTotal(r); }, 0);
+  var totEl = document.getElementById('sectiontotal-'+section);
+  if (totEl) totEl.textContent = fmtCurrency(total);
+  refreshSummaryStrip();
+  if (activeTab === 'final') refreshFinalTab();
+  if (activeTab === 'billing') refreshBillingTab();
+}
+
+function refreshSummaryStrip(){
+  var d = computeDerived(current.data);
+  var cells = document.querySelectorAll('.summary-strip .value');
+  if (cells.length === 5){
+    cells[0].textContent = fmtCurrency(d.laborTotal);
+    cells[1].textContent = fmtCurrency(d.materialTotal);
+    cells[2].textContent = fmtCurrency(d.subLaborTotal);
+    cells[3].textContent = fmtCurrency(d.miscTotal);
+    cells[4].textContent = fmtCurrency(d.final.totalCost);
+  }
+}
+
+function refreshFinalTab(){
+  var d = computeDerived(current.data);
+  var fc = d.final;
+  setText('fc-cost-labor', fmtCurrency(d.laborTotal));
+  setText('fc-margin-labor', fmtCurrency(fc.labor.marginDollars));
+  setText('fc-cpm-labor', fmtCurrency(fc.labor.costPlusMargin));
+  setText('fc-cost-material', fmtCurrency(d.materialTotal));
+  setText('fc-margin-material', fmtCurrency(fc.material.marginDollars));
+  setText('fc-cpm-material', fmtCurrency(fc.material.costPlusMargin));
+  setText('fc-cost-subLabor', fmtCurrency(d.subLaborTotal));
+  setText('fc-margin-subLabor', fmtCurrency(fc.subLabor.marginDollars));
+  setText('fc-cpm-subLabor', fmtCurrency(fc.subLabor.costPlusMargin));
+  setText('fc-cost-misc', fmtCurrency(d.miscTotal));
+  setText('fc-margin-misc', fmtCurrency(fc.misc.marginDollars));
+  setText('fc-cpm-misc', fmtCurrency(fc.misc.costPlusMargin));
+  setText('fc-cost-sum', fmtCurrency(fc.sumCost));
+  setText('fc-margin-sum', fmtCurrency(fc.sumMargin));
+  setText('fc-cpm-sum', fmtCurrency(fc.sumCostPlusMargin));
+  setText('fc-warranty', fmtCurrency(fc.warrantyAmt));
+  setText('fc-trip', fmtCurrency(fc.tripCharge));
+  setText('fc-freight', fmtCurrency(fc.freightCost));
+  setText('fc-subtotal', fmtCurrency(fc.subtotalCost));
+  setText('fc-tax', fmtCurrency(fc.taxAmt));
+  setText('fc-total', fmtCurrency(fc.totalCost));
+}
+
+function refreshBillingTab(){
+  var d = computeDerived(current.data);
+  var bc = d.billing;
+  setText('bc-remaining-labor', 'Remaining: ' + fmtCurrency(bc.remainingLabor));
+  setText('bc-remaining-materials', 'Remaining: ' + fmtCurrency(bc.remainingMaterials));
+  setText('bc-remaining-subContr', 'Remaining: ' + fmtCurrency(bc.remainingSubContr));
+  setText('bc-remaining-misc', 'Remaining: ' + fmtCurrency(bc.remainingMisc));
+  setText('bc-remaining-change', 'Remaining: ' + fmtCurrency(bc.remainingChange));
+  setText('bc-total-contract', fmtCurrency(bc.totalContract));
+  setText('bc-remaining-total', fmtCurrency(bc.remainingTotal));
+  bc.cycles.forEach(function(c, idx){
+    setText('cyc-laborAmt-'+idx, fmtCurrency(c.laborAmt));
+    setText('cyc-materialsAmt-'+idx, fmtCurrency(c.materialsAmt));
+    setText('cyc-subContrAmt-'+idx, fmtCurrency(c.subContrAmt));
+    setText('cyc-miscAmt-'+idx, fmtCurrency(c.miscAmt));
+    setText('cyc-changeAmt-'+idx, fmtCurrency(c.changeAmt));
+    setText('cyc-subTotalAmt-'+idx, fmtCurrency(c.subTotalAmt));
+    setText('cyc-retainageAmt-'+idx, fmtCurrency(c.retainageAmt));
+    setText('cyc-totalAmt-'+idx, fmtCurrency(c.totalAmt));
+    setText('cyc-runningTotal-'+idx, fmtCurrency(c.runningTotal));
+  });
+  setText('cyc-total-subTotalAmt', fmtCurrency(sumCycles(bc,'subTotalAmt')));
+  setText('cyc-total-retainageAmt', fmtCurrency(sumCycles(bc,'retainageAmt')));
+  setText('cyc-total-totalAmt', fmtCurrency(sumCycles(bc,'totalAmt')));
+  refreshSummaryStrip();
+}
+
+function setText(id, text){
+  var el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+/* ============================================================
+   EXPORT / IMPORT
+   ============================================================ */
+function downloadBlob(filename, content, mime){
+  var blob = new Blob([content], {type: mime});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function safeFileName(s){ return (s||'estimate').replace(/[^a-z0-9\-_]+/gi,'_').slice(0,60); }
+
+function exportProjectJSON(){
+  downloadBlob(safeFileName(current.name)+'.json', JSON.stringify(current, null, 2), 'application/json');
+}
+
+function handleImportFile(file){
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var obj = JSON.parse(reader.result);
+      if (!obj || !obj.data) throw new Error('Not a valid estimate file');
+      obj.id = uid();
+      obj.name = (obj.name || 'Imported Estimate') + ' (imported)';
+      obj.updatedAt = Date.now();
+      projects.push(obj);
+      current = obj;
+      setActiveId(obj.id);
+      saveAllProjects(projects);
+      activeTab = 'labor';
+      render();
+    }catch(err){
+      alert('Could not import that file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function csvEscape(v){
+  v = v === undefined || v === null ? '' : String(v);
+  if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g,'""') + '"';
+  return v;
+}
+function exportCSV(section){
+  var rows = [];
+  if (LINE_CONFIG[section]){
+    var cfg = LINE_CONFIG[section];
+    rows.push(['Item'].concat(cfg.columns.map(function(c){return c.label;})).concat(['Subtotal']));
+    current.data[section].forEach(function(r, idx){
+      rows.push([idx+1].concat(cfg.columns.map(function(c){return r[c.key];})).concat([cfg.computeTotal(r).toFixed(2)]));
+    });
+  } else if (section === 'billing'){
+    var d = computeDerived(current.data);
+    rows.push(['#','Date','Invoice No','Labor %','Labor $','Materials %','Materials $','Sub-Contr %','Sub-Contr $','Misc %','Misc $','Change %','Change $','Subtotal','Retainage','Total','Running Total']);
+    current.data.billing.cycles.forEach(function(c, idx){
+      var cc = d.billing.cycles[idx];
+      rows.push([idx+1, c.date, c.invoiceNo, c.laborPct, cc.laborAmt.toFixed(2), c.materialsPct, cc.materialsAmt.toFixed(2), c.subContrPct, cc.subContrAmt.toFixed(2), c.miscPct, cc.miscAmt.toFixed(2), c.changeOrderPct, cc.changeAmt.toFixed(2), cc.subTotalAmt.toFixed(2), cc.retainageAmt.toFixed(2), cc.totalAmt.toFixed(2), cc.runningTotal.toFixed(2)]);
+    });
+  }
+  var csv = rows.map(function(r){ return r.map(csvEscape).join(','); }).join('\r\n');
+  downloadBlob(safeFileName(current.name)+'-'+section+'.csv', csv, 'text/csv');
+}
+
+/* ============================================================
+   PWA — install prompt + service worker
+   ============================================================ */
+var deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  installPromptAvailable = true;
+  var b = document.getElementById('installBtn');
+  if (b) b.style.display = '';
+});
+window.addEventListener('appinstalled', function(){
+  deferredInstallPrompt = null;
+  installPromptAvailable = false;
+  var b = document.getElementById('installBtn');
+  if (b) b.style.display = 'none';
+});
+
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(err){
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+render();
+
+})();
+</script>
+</body>
+</html>

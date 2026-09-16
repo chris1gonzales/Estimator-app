@@ -1,0 +1,16 @@
+{
+  "name": "ABAS Estimator",
+  "short_name": "ABAS Estimator",
+  "description": "Building automation project cost estimator — labor, materials, sub-labor, misc, final estimate, and progress billing.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ECEFF2",
+  "theme_color": "#1E4E8C",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
