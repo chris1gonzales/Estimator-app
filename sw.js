@@ -6,21 +6,27 @@
   Bump CACHE_VERSION whenever index.html (or any precached file) changes, so
   returning users pick up the new version instead of a stale cached copy.
 */
-var CACHE_VERSION = 'abas-estimator-v1';
+var CACHE_VERSION = 'abas-estimator-v2';
 var PRECACHE_URLS = [
   './',
   './index.html',
-  './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-maskable-512.png'
+  './manifest.webmanifest'
+];
+var OPTIONAL_URLS = [
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', function(event){
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_VERSION).then(function(cache){
-      return cache.addAll(PRECACHE_URLS);
+      return cache.addAll(PRECACHE_URLS).then(function(){
+        return Promise.all(OPTIONAL_URLS.map(function(u){
+          return cache.add(u).catch(function(){});
+        }));
+      });
     })
   );
 });
