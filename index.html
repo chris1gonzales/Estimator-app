@@ -611,6 +611,7 @@ function renderTopbar(){
       '<select id="projectSelect" title="Switch estimate">'+options+'</select>'+
       '<button class="icon-btn" data-action="new-project" title="New estimate">+ New</button>'+
       '<button class="icon-btn" data-action="duplicate-project" title="Duplicate this estimate">Duplicate</button>'+
+      '<button class="icon-btn btn-danger" data-action="clear-inputs" title="Clear everything you entered in this estimate. Default labels and percentages are kept.">Clear inputs</button>'+
       '<button class="icon-btn btn-danger" data-action="delete-project" title="Delete this estimate" '+(projects.length<=1?'disabled':'')+'>Delete</button>'+
       '<select id="exportSelect" title="Export or print this estimate"><option value="">Export\u2026</option><option value="xlsx">Excel workbook (.xlsx)</option><option value="pdf">PDF / print full estimate</option><option value="csv-zip">CSV, all sheets (.zip)</option><option value="json">JSON backup (.json)</option></select>'+
       '<button class="icon-btn" data-action="import-json" title="Import an estimate JSON file">Import</button>'+
@@ -935,6 +936,14 @@ function onClick(e){
     setActiveId(p.id);
     saveAllProjects(projects);
     activeTab = 'labor';
+    render();
+    return;
+  }
+  if (action === 'clear-inputs'){
+    if (!confirm('Clear everything you entered in "' + current.name + '"?\n\nDefault labels and percentages are kept. This cannot be undone, so use Export > JSON backup first if you may need it.')) return;
+    current.data = makeDefaultData();
+    current.updatedAt = Date.now();
+    saveAllProjects(projects);
     render();
     return;
   }
