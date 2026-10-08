@@ -6,7 +6,7 @@
 
   Bump CACHE_VERSION when you change precached files so old caches are cleared.
 */
-var CACHE_VERSION = 'abas-estimator-v4';
+var CACHE_VERSION = 'abas-estimator-v5';
 var PRECACHE_URLS = [
   './',
   './index.html',

@@ -276,22 +276,63 @@ footer.app-footer a{color:var(--ink-soft);}
   }
 }
 
-/* full-estimate print report (built by JS right before printing) */
+/* printable output: internal report (landscape) and client proposal (portrait), built by JS right before printing */
 #printReport{display:none;}
-@page{size:letter landscape;margin:12mm;}
+@page{margin:12mm;}
+@page rptpage{size:letter landscape;margin:12mm;}
+@page proposal{size:letter portrait;margin:16mm;}
+.rpt{page:rptpage;}
+.prop{page:proposal;}
 @media print{
   #app{display:none!important;}
   #printReport{display:block;color:#000;font-family:var(--font-ui);}
-  #printReport h1{font-size:18px;margin:0 0 6px;}
-  #printReport h2{font-size:13px;margin:16px 0 6px;padding-bottom:3px;border-bottom:1px solid #000;break-after:avoid;}
-  #printReport table{border-collapse:collapse;width:100%;font-size:10px;}
-  #printReport tr{break-inside:avoid;}
-  #printReport th{background:#1E4E8C;color:#fff;text-align:left;padding:3px 6px;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  #printReport td{padding:3px 6px;border-bottom:1px solid #ccc;}
-  #printReport td.num{text-align:right;}
-  #printReport .b{font-weight:700;}
-  #printReport td.sp{border-bottom:none;padding:4px;}
+  #printReport .rpt h1{font-size:18px;margin:0 0 6px;}
+  #printReport .rpt h2{font-size:13px;margin:16px 0 6px;padding-bottom:3px;border-bottom:1px solid #000;break-after:avoid;}
+  #printReport .rpt table{border-collapse:collapse;width:100%;font-size:10px;}
+  #printReport .rpt tr{break-inside:avoid;}
+  #printReport .rpt th{background:#1E4E8C;color:#fff;text-align:left;padding:3px 6px;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  #printReport .rpt td{padding:3px 6px;border-bottom:1px solid #ccc;}
+  #printReport .rpt td.num{text-align:right;}
+  #printReport .rpt .b{font-weight:700;}
+  #printReport .rpt td.sp{border-bottom:none;padding:4px;}
+  #printReport .internal-banner{border:2px solid #B23A2E;color:#B23A2E;font-weight:700;text-align:center;padding:4px 8px;margin-bottom:10px;font-size:11px;}
 }
+
+/* client proposal: used by both the on-screen preview and the printout */
+.prop{background:#fff;color:#111;font-family:var(--font-ui);font-size:12px;line-height:1.5;}
+.prop-screen{background:#fff;border:1px solid var(--border-strong);box-shadow:0 1px 4px rgba(0,0,0,.15);padding:28px 32px;max-width:800px;margin:8px auto 0;overflow-x:auto;}
+.prop-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid #1E4E8C;padding-bottom:10px;margin-bottom:14px;}
+.prop-co{font-size:19px;font-weight:700;color:#1E4E8C;}
+.prop-sub{color:#444;white-space:pre-line;}
+.prop-title{text-align:right;white-space:nowrap;}
+.prop-h{font-size:22px;font-weight:700;letter-spacing:.12em;color:#1E4E8C;}
+.prop-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;margin-bottom:6px;}
+.prop-meta span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#666;}
+.prop-meta b{font-weight:600;}
+.prop h3{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#1E4E8C;margin:18px 0 6px;padding-bottom:3px;border-bottom:1px solid #bbb;break-after:avoid;}
+.prop .pre{white-space:pre-wrap;margin:0;}
+.prop table{width:100%;border-collapse:collapse;}
+.prop th{background:#1E4E8C;color:#fff;text-align:left;padding:5px 8px;font-size:11px;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.prop th.a,.prop td.a,.prop td.q{text-align:right;}
+.prop td.q{white-space:nowrap;}
+.prop td{padding:5px 8px;border-bottom:1px solid #ddd;vertical-align:top;}
+.prop tr{break-inside:avoid;}
+.prop tr.grp td{background:#eef2f7;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.prop tr.sub td{font-weight:600;}
+.prop tr.tot td{font-weight:700;font-size:13px;border-top:2px solid #111;border-bottom:none;}
+.prop .sigs{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:22px;break-inside:avoid;}
+.prop .sig-line{border-bottom:1px solid #111;height:30px;margin-bottom:3px;}
+.prop .sig-lab{font-size:10px;color:#555;margin-bottom:10px;}
+
+/* proposal editor + tax column */
+.meta-grid.wide{max-width:780px;grid-template-columns:150px 1fr;}
+.meta-grid.wide label{align-self:start;padding-top:8px;}
+.meta-grid select{max-width:260px;width:100%;}
+.hint-row{grid-column:1 / -1;font-size:11.5px;color:var(--ink-faint);margin:-2px 0 6px;}
+.preview-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin:20px 0 4px;}
+table.final-table{max-width:860px;}
+table.final-table th.chk,table.final-table td.chk{text-align:center;}
+table.final-table td.chk input{width:auto;}
 
 @media (max-width:720px){
   .summary-strip{grid-template-columns:repeat(2,1fr);}
@@ -368,8 +409,8 @@ var LINE_CONFIG = {
   }
 };
 
-var TAB_ORDER = ["labor","materials","subLabor","misc","final","billing"];
-var TAB_LABELS = {labor:"Labor & Scope", materials:"Materials", subLabor:"Sub-Labor", misc:"Misc", final:"Final Estimate", billing:"Billing"};
+var TAB_ORDER = ["labor","materials","subLabor","misc","final","proposal","billing"];
+var TAB_LABELS = {labor:"Labor & Scope", materials:"Materials", subLabor:"Sub-Labor", misc:"Misc", final:"Final Estimate", proposal:"Proposal", billing:"Billing"};
 
 /* ============================================================
    UTILITIES
@@ -442,7 +483,8 @@ function makeDefaultData(){
   data.meta = { client:"", date:"", scope:"" };
   data.final = {
     marginLabor: 35, marginMaterial: 35, marginSubLabor: 35, marginMisc: 35,
-    warrantyPct: 5, tripCharge: 0, freightCost: 0, taxPct: 8.25
+    warrantyPct: 5, tripCharge: 0, freightCost: 0, taxPct: 8.25,
+    taxable: defaultTaxable()
   };
   data.billing = {
     retainagePct: 10,
@@ -450,6 +492,7 @@ function makeDefaultData(){
     changeOrderAmount: 0,
     cycles: [ makeCycleRow() ]
   };
+  data.proposal = defaultProposal();
   return data;
 }
 function makeCycleRow(){
@@ -488,14 +531,24 @@ function computeDerived(data){
   var tripCharge = parseFloat(f.tripCharge)||0;
   var freightCost = parseFloat(f.freightCost)||0;
   var subtotalCost = sumCostPlusMargin + warrantyAmt + tripCharge + freightCost;
-  var taxAmt = (parseFloat(f.taxPct)||0)/100 * subtotalCost;
+  var tx = f.taxable || {};
+  function isTaxable(k){ return tx[k] !== false; }
+  var taxableBase =
+    (isTaxable('labor') ? rowLabor.costPlusMargin : 0) +
+    (isTaxable('material') ? rowMaterial.costPlusMargin : 0) +
+    (isTaxable('subLabor') ? rowSubLabor.costPlusMargin : 0) +
+    (isTaxable('misc') ? rowMisc.costPlusMargin : 0) +
+    (isTaxable('warranty') ? warrantyAmt : 0) +
+    (isTaxable('trip') ? tripCharge : 0) +
+    (isTaxable('freight') ? freightCost : 0);
+  var taxAmt = (parseFloat(f.taxPct)||0)/100 * taxableBase;
   var totalCost = subtotalCost + taxAmt;
 
   var finalCalc = {
     labor: rowLabor, material: rowMaterial, subLabor: rowSubLabor, misc: rowMisc,
     sumCost: sumCost, sumMargin: sumMargin, sumCostPlusMargin: sumCostPlusMargin,
     warrantyAmt: warrantyAmt, tripCharge: tripCharge, freightCost: freightCost,
-    subtotalCost: subtotalCost, taxAmt: taxAmt, totalCost: totalCost
+    subtotalCost: subtotalCost, taxableBase: taxableBase, taxAmt: taxAmt, totalCost: totalCost
   };
 
   var b = data.billing;
@@ -551,6 +604,9 @@ var projects = loadAllProjects();
 var current = null;
 var activeTab = "labor";
 var installPromptAvailable = false;
+var COMPANY_KEY = 'abas_estimator_company_v1';
+var company = loadCompany();
+var printMode = null;
 
 function ensureProject(){
   if (projects.length === 0){
@@ -558,6 +614,7 @@ function ensureProject(){
     projects.push(p);
     saveAllProjects(projects);
   }
+  projects.forEach(function(p){ if (p && p.data) migrateData(p.data); });
   var activeId = getActiveId();
   current = projects.find(function(p){ return p.id === activeId; }) || projects[0];
   setActiveId(current.id);
@@ -613,7 +670,7 @@ function renderTopbar(){
       '<button class="icon-btn" data-action="duplicate-project" title="Duplicate this estimate">Duplicate</button>'+
       '<button class="icon-btn btn-danger" data-action="clear-inputs" title="Clear everything you entered in this estimate. Default labels and percentages are kept.">Clear inputs</button>'+
       '<button class="icon-btn btn-danger" data-action="delete-project" title="Delete this estimate" '+(projects.length<=1?'disabled':'')+'>Delete</button>'+
-      '<select id="exportSelect" title="Export or print this estimate"><option value="">Export\u2026</option><option value="xlsx">Excel workbook (.xlsx)</option><option value="pdf">PDF / print full estimate</option><option value="csv-zip">CSV, all sheets (.zip)</option><option value="json">JSON backup (.json)</option></select>'+
+      '<select id="exportSelect" title="Export or print this estimate"><option value="">Export\u2026</option><option value="proposal">PDF &mdash; client proposal</option><option value="pdf">PDF &mdash; internal estimate</option><option value="xlsx">Excel &mdash; internal (.xlsx)</option><option value="csv-zip">CSV, all sheets &mdash; internal (.zip)</option><option value="json">JSON backup (.json)</option></select>'+
       '<button class="icon-btn" data-action="import-json" title="Import an estimate JSON file">Import</button>'+
       '<button class="icon-btn btn-primary" id="installBtn" data-action="install" title="Install as an app" style="display:'+(installPromptAvailable?'':'none')+'">Install</button>'+
       '<input type="file" id="importFile" accept="application/json" style="display:none">'+
@@ -660,6 +717,7 @@ function renderFooter(){
 function renderTabContent(tab, d){
   if (LINE_CONFIG[tab]) return renderLineTab(tab, d);
   if (tab === 'final') return renderFinalTab(d);
+  if (tab === 'proposal') return renderProposalTab(d);
   if (tab === 'billing') return renderBillingTab(d);
   return '';
 }
@@ -708,14 +766,19 @@ function renderFinalTab(d){
   var m = current.data.meta;
   var f = current.data.final;
   var fc = d.final;
+  var tx = f.taxable || {};
 
-  function row(label, cost, marginKey, marginVal, marginDollars, costPlusMargin, id){
+  function taxCell(k){
+    return '<td class="chk"><input type="checkbox" title="Charge sales tax on this line" data-role="tax-field" data-key="'+k+'"'+(tx[k] === false ? '' : ' checked')+'></td>';
+  }
+  function row(label, cost, marginKey, marginVal, marginDollars, costPlusMargin, id, taxKey){
     return '<tr>'+
       '<td>'+label+'</td>'+
       '<td class="mono" id="fc-cost-'+id+'">'+fmtCurrency(cost)+'</td>'+
       '<td><input type="number" step="0.1" value="'+esc(marginVal)+'" data-role="final-field" data-key="'+marginKey+'" data-type="number"> %</td>'+
       '<td class="mono" id="fc-margin-'+id+'">'+fmtCurrency(marginDollars)+'</td>'+
       '<td class="mono" id="fc-cpm-'+id+'">'+fmtCurrency(costPlusMargin)+'</td>'+
+      taxCell(taxKey)+
     '</tr>';
   }
 
@@ -727,21 +790,23 @@ function renderFinalTab(d){
     '<label>Scope</label><textarea data-role="meta-field" data-key="scope" placeholder="One-line project scope">'+esc(m.scope)+'</textarea>'+
   '</div>'+
   '<div class="table-wrap"><table class="final-table">'+
-    '<thead><tr><th style="text-align:left">&nbsp;</th><th>Cost</th><th>Margin (%)</th><th>Margin ($)</th><th>Cost + Margin</th></tr></thead>'+
+    '<thead><tr><th style="text-align:left">&nbsp;</th><th>Cost</th><th>Margin (%)</th><th>Margin ($)</th><th>Cost + Margin</th><th class="chk" title="Check the lines that are charged sales tax">Taxable</th></tr></thead>'+
     '<tbody>'+
-      row('Labor Total', d.laborTotal, 'marginLabor', f.marginLabor, fc.labor.marginDollars, fc.labor.costPlusMargin, 'labor')+
-      row('Material Total', d.materialTotal, 'marginMaterial', f.marginMaterial, fc.material.marginDollars, fc.material.costPlusMargin, 'material')+
-      row('Sub-Labor Total', d.subLaborTotal, 'marginSubLabor', f.marginSubLabor, fc.subLabor.marginDollars, fc.subLabor.costPlusMargin, 'subLabor')+
-      row('Misc Total', d.miscTotal, 'marginMisc', f.marginMisc, fc.misc.marginDollars, fc.misc.costPlusMargin, 'misc')+
-      '<tr class="final-sub-row"><td>Subtotal</td><td class="mono" id="fc-cost-sum">'+fmtCurrency(fc.sumCost)+'</td><td></td><td class="mono" id="fc-margin-sum">'+fmtCurrency(fc.sumMargin)+'</td><td class="mono" id="fc-cpm-sum">'+fmtCurrency(fc.sumCostPlusMargin)+'</td></tr>'+
-      '<tr><td>Warranty</td><td></td><td><input type="number" step="0.1" value="'+esc(f.warrantyPct)+'" data-role="final-field" data-key="warrantyPct" data-type="number"> %</td><td></td><td class="mono" id="fc-warranty">'+fmtCurrency(fc.warrantyAmt)+'</td></tr>'+
-      '<tr><td>Trip Charge</td><td></td><td colspan="2"><input type="number" step="1" value="'+esc(f.tripCharge)+'" data-role="final-field" data-key="tripCharge" data-type="number"></td><td class="mono" id="fc-trip">'+fmtCurrency(fc.tripCharge)+'</td></tr>'+
-      '<tr><td>Freight Cost</td><td></td><td colspan="2"><input type="number" step="1" value="'+esc(f.freightCost)+'" data-role="final-field" data-key="freightCost" data-type="number"></td><td class="mono" id="fc-freight">'+fmtCurrency(fc.freightCost)+'</td></tr>'+
-      '<tr class="final-sub-row"><td>Subtotal Cost</td><td></td><td></td><td></td><td class="mono" id="fc-subtotal">'+fmtCurrency(fc.subtotalCost)+'</td></tr>'+
-      '<tr><td>Tax</td><td></td><td><input type="number" step="0.01" value="'+esc(f.taxPct)+'" data-role="final-field" data-key="taxPct" data-type="number"> %</td><td></td><td class="mono" id="fc-tax">'+fmtCurrency(fc.taxAmt)+'</td></tr>'+
-      '<tr class="final-total-row"><td>Total Cost</td><td></td><td></td><td></td><td class="mono" id="fc-total">'+fmtCurrency(fc.totalCost)+'</td></tr>'+
+      row('Labor Total', d.laborTotal, 'marginLabor', f.marginLabor, fc.labor.marginDollars, fc.labor.costPlusMargin, 'labor', 'labor')+
+      row('Material Total', d.materialTotal, 'marginMaterial', f.marginMaterial, fc.material.marginDollars, fc.material.costPlusMargin, 'material', 'material')+
+      row('Sub-Labor Total', d.subLaborTotal, 'marginSubLabor', f.marginSubLabor, fc.subLabor.marginDollars, fc.subLabor.costPlusMargin, 'subLabor', 'subLabor')+
+      row('Misc Total', d.miscTotal, 'marginMisc', f.marginMisc, fc.misc.marginDollars, fc.misc.costPlusMargin, 'misc', 'misc')+
+      '<tr class="final-sub-row"><td>Subtotal</td><td class="mono" id="fc-cost-sum">'+fmtCurrency(fc.sumCost)+'</td><td></td><td class="mono" id="fc-margin-sum">'+fmtCurrency(fc.sumMargin)+'</td><td class="mono" id="fc-cpm-sum">'+fmtCurrency(fc.sumCostPlusMargin)+'</td><td></td></tr>'+
+      '<tr><td>Warranty</td><td></td><td><input type="number" step="0.1" value="'+esc(f.warrantyPct)+'" data-role="final-field" data-key="warrantyPct" data-type="number"> %</td><td></td><td class="mono" id="fc-warranty">'+fmtCurrency(fc.warrantyAmt)+'</td>'+taxCell('warranty')+'</tr>'+
+      '<tr><td>Trip Charge</td><td></td><td colspan="2"><input type="number" step="1" value="'+esc(f.tripCharge)+'" data-role="final-field" data-key="tripCharge" data-type="number"></td><td class="mono" id="fc-trip">'+fmtCurrency(fc.tripCharge)+'</td>'+taxCell('trip')+'</tr>'+
+      '<tr><td>Freight Cost</td><td></td><td colspan="2"><input type="number" step="1" value="'+esc(f.freightCost)+'" data-role="final-field" data-key="freightCost" data-type="number"></td><td class="mono" id="fc-freight">'+fmtCurrency(fc.freightCost)+'</td>'+taxCell('freight')+'</tr>'+
+      '<tr class="final-sub-row"><td>Subtotal Cost</td><td></td><td></td><td></td><td class="mono" id="fc-subtotal">'+fmtCurrency(fc.subtotalCost)+'</td><td></td></tr>'+
+      '<tr><td>Taxable Amount</td><td></td><td></td><td></td><td class="mono" id="fc-taxable">'+fmtCurrency(fc.taxableBase)+'</td><td></td></tr>'+
+      '<tr><td>Tax</td><td></td><td><input type="number" step="0.01" value="'+esc(f.taxPct)+'" data-role="final-field" data-key="taxPct" data-type="number"> %</td><td></td><td class="mono" id="fc-tax">'+fmtCurrency(fc.taxAmt)+'</td><td></td></tr>'+
+      '<tr class="final-total-row"><td>Total Cost</td><td></td><td></td><td></td><td class="mono" id="fc-total">'+fmtCurrency(fc.totalCost)+'</td><td></td></tr>'+
     '</tbody>'+
   '</table></div>'+
+  '<div class="hint-row" style="margin-top:8px">Sales tax is charged only on the lines checked as Taxable. Uncheck any line that is not taxed where you work.</div>'+
   '<div class="table-toolbar"><button class="btn" data-action="export-csv" data-section="final">Export CSV</button></div>';
   return html;
 }
@@ -863,6 +928,21 @@ function onInput(e){
     markDirty();
   } else if (role === 'meta-field'){
     current.data.meta[t.dataset.key] = t.value;
+    if (activeTab === 'proposal') refreshProposalPreview();
+    markDirty();
+  } else if (role === 'proposal-field'){
+    current.data.proposal[t.dataset.key] = t.value;
+    refreshProposalPreview();
+    markDirty();
+  } else if (role === 'company-field'){
+    company[t.dataset.key] = t.value;
+    saveCompany();
+    refreshProposalPreview();
+  } else if (role === 'tax-field'){
+    if (!current.data.final.taxable) current.data.final.taxable = defaultTaxable();
+    current.data.final.taxable[t.dataset.key] = t.checked;
+    refreshFinalTab();
+    refreshSummaryStrip();
     markDirty();
   } else if (role === 'final-field'){
     current.data.final[t.dataset.key] = t.value;
@@ -977,6 +1057,10 @@ function onClick(e){
     document.getElementById('importFile').click();
     return;
   }
+  if (action === 'print-proposal'){
+    runExport('proposal');
+    return;
+  }
   if (action === 'print'){
     window.print();
     return;
@@ -1056,6 +1140,7 @@ function refreshFinalTab(){
   setText('fc-trip', fmtCurrency(fc.tripCharge));
   setText('fc-freight', fmtCurrency(fc.freightCost));
   setText('fc-subtotal', fmtCurrency(fc.subtotalCost));
+  setText('fc-taxable', fmtCurrency(fc.taxableBase));
   setText('fc-tax', fmtCurrency(fc.taxAmt));
   setText('fc-total', fmtCurrency(fc.totalCost));
 }
@@ -1116,9 +1201,7 @@ function handleImportFile(file){
     try{
       var obj = JSON.parse(reader.result);
       if (!obj || !obj.data) throw new Error('Not a valid estimate file');
-      var defaults = makeDefaultData();
-      Object.keys(defaults).forEach(function(k){ if (obj.data[k] === undefined) obj.data[k] = defaults[k]; });
-      if (!obj.data.billing.cycles || !obj.data.billing.cycles.length) obj.data.billing.cycles = [makeCycleRow()];
+      migrateData(obj.data);
       obj.id = uid();
       obj.name = (obj.name || 'Imported Estimate') + ' (imported)';
       obj.updatedAt = Date.now();
@@ -1185,30 +1268,33 @@ function buildSheets(){
 
   /* Final Estimate */
   var m = data.meta, f = data.final, fc = d.final;
+  var txf = f.taxable || {};
+  function yn(k){ return txf[k] === false ? 'No' : 'Yes'; }
   function money(v){ return {v:v, s:'$'}; }
   function moneyB(v){ return {v:v, s:'b$'}; }
-  function catRow(label, cost, pct, marginD, cpm){
-    return [label, money(cost), numOrNull(pct), money(marginD), money(cpm)];
+  function catRow(label, cost, pct, marginD, cpm, k){
+    return [label, money(cost), numOrNull(pct), money(marginD), money(cpm), yn(k)];
   }
   var fin = [
     [{v:'Client', s:'b'}, m.client || ''],
     [{v:'Date', s:'b'}, m.date || ''],
     [{v:'Scope', s:'b'}, m.scope || ''],
     [],
-    H(['Cost Estimate Summary', 'Cost', 'Margin (%)', 'Margin ($)', 'Cost + Margin']),
-    catRow('Labor Total', d.laborTotal, f.marginLabor, fc.labor.marginDollars, fc.labor.costPlusMargin),
-    catRow('Material Total', d.materialTotal, f.marginMaterial, fc.material.marginDollars, fc.material.costPlusMargin),
-    catRow('Sub-Labor Total', d.subLaborTotal, f.marginSubLabor, fc.subLabor.marginDollars, fc.subLabor.costPlusMargin),
-    catRow('Misc Total', d.miscTotal, f.marginMisc, fc.misc.marginDollars, fc.misc.costPlusMargin),
+    H(['Cost Estimate Summary', 'Cost', 'Margin (%)', 'Margin ($)', 'Cost + Margin', 'Taxable']),
+    catRow('Labor Total', d.laborTotal, f.marginLabor, fc.labor.marginDollars, fc.labor.costPlusMargin, 'labor'),
+    catRow('Material Total', d.materialTotal, f.marginMaterial, fc.material.marginDollars, fc.material.costPlusMargin, 'material'),
+    catRow('Sub-Labor Total', d.subLaborTotal, f.marginSubLabor, fc.subLabor.marginDollars, fc.subLabor.costPlusMargin, 'subLabor'),
+    catRow('Misc Total', d.miscTotal, f.marginMisc, fc.misc.marginDollars, fc.misc.costPlusMargin, 'misc'),
     [{v:'Subtotal', s:'b'}, moneyB(fc.sumCost), '', moneyB(fc.sumMargin), moneyB(fc.sumCostPlusMargin)],
-    ['Warranty', '', numOrNull(f.warrantyPct), '', money(fc.warrantyAmt)],
-    ['Trip Charge', '', '', '', money(fc.tripCharge)],
-    ['Freight Cost', '', '', '', money(fc.freightCost)],
+    ['Warranty', '', numOrNull(f.warrantyPct), '', money(fc.warrantyAmt), yn('warranty')],
+    ['Trip Charge', '', '', '', money(fc.tripCharge), yn('trip')],
+    ['Freight Cost', '', '', '', money(fc.freightCost), yn('freight')],
     [{v:'Subtotal Cost', s:'b'}, '', '', '', moneyB(fc.subtotalCost)],
+    ['Taxable Amount', '', '', '', money(fc.taxableBase)],
     ['Tax', '', numOrNull(f.taxPct), '', money(fc.taxAmt)],
     [{v:'Total Cost', s:'b'}, '', '', '', moneyB(fc.totalCost)]
   ];
-  sheets.push({key:'final', name:'Final Estimate', widths:[28, 16, 12, 16, 18], rows:fin});
+  sheets.push({key:'final', name:'Final Estimate', widths:[28, 16, 12, 16, 18, 10], rows:fin});
 
   /* Billing */
   var b = data.billing, bc = d.billing;
@@ -1415,8 +1501,223 @@ function exportXLSX(){
 }
 
 /* ---- printable full-estimate report (all sheets, not just the open tab) ---- */
+/* ---- defaults + migration for newer fields (older saved estimates lack them) ---- */
+function defaultTaxable(){
+  return {labor:true, material:true, subLabor:true, misc:true, warranty:true, trip:true, freight:true};
+}
+function defaultProposal(){
+  return {detail:'category', scope:'', inclusions:'', exclusions:'', terms:'', validDays:30, paymentTerms:'Net 30'};
+}
+function migrateData(data){
+  var def = makeDefaultData();
+  Object.keys(def).forEach(function(k){ if (data[k] === undefined || data[k] === null) data[k] = def[k]; });
+  var dt = defaultTaxable();
+  if (!data.final.taxable) data.final.taxable = dt;
+  else Object.keys(dt).forEach(function(k){ if (data.final.taxable[k] === undefined) data.final.taxable[k] = true; });
+  var dp = defaultProposal();
+  if (!data.proposal) data.proposal = dp;
+  else Object.keys(dp).forEach(function(k){ if (data.proposal[k] === undefined) data.proposal[k] = dp[k]; });
+  if (!data.billing.cycles || !data.billing.cycles.length) data.billing.cycles = [makeCycleRow()];
+  return data;
+}
+
+/* ---- company details: saved once per browser, reused on every proposal ---- */
+function loadCompany(){
+  var blank = {name:'', address:'', contact:'', preparedBy:''};
+  try{
+    var c = JSON.parse(localStorage.getItem(COMPANY_KEY) || '{}') || {};
+    Object.keys(blank).forEach(function(k){ blank[k] = typeof c[k] === 'string' ? c[k] : ''; });
+  }catch(e){}
+  return blank;
+}
+function saveCompany(){
+  try{ localStorage.setItem(COMPANY_KEY, JSON.stringify(company)); }catch(e){}
+}
+
+/* ---- client proposal: sell prices only, never cost or margin ---- */
+function r2(x){ return Math.round((x + 1e-9) * 100) / 100; }
+
+/* Round each value to cents so the rounded values add up exactly to target. */
+function allocateRounded(vals, target){
+  var cents = Math.round(target * 100);
+  var floors = vals.map(function(v){ return Math.floor(v * 100 + 1e-9); });
+  var rem = cents - floors.reduce(function(a, b){ return a + b; }, 0);
+  var order = vals.map(function(v, i){ return {i:i, f: v * 100 - floors[i]}; })
+                  .sort(function(a, b){ return b.f - a.f; });
+  var out = floors.slice(), k = 0;
+  while (rem > 0 && order.length){ out[order[k % order.length].i]++; rem--; k++; }
+  k = 0;
+  while (rem < 0 && order.length){ out[order[order.length - 1 - (k % order.length)].i]--; rem++; k++; }
+  return out.map(function(c){ return c / 100; });
+}
+
+function parseYMD(s){
+  var p = String(s || '').split('-');
+  if (p.length !== 3) return null;
+  var dt = new Date(+p[0], +p[1] - 1, +p[2]);
+  return isNaN(dt.getTime()) ? null : dt;
+}
+function longDate(dt){
+  return dt.toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+}
+
+function buildProposalHtml(){
+  var data = current.data, P = data.proposal || defaultProposal(), M = data.meta;
+  var d = computeDerived(data), fc = d.final;
+  var detail = (P.detail === 'lump' || P.detail === 'itemized') ? P.detail : 'category';
+  var co = company;
+
+  var cats = [
+    {key:'labor',     label:'Labor',          sell:fc.labor.costPlusMargin,    cost:fc.labor.cost,    unit:' hrs'},
+    {key:'materials', label:'Materials',      sell:fc.material.costPlusMargin, cost:fc.material.cost, unit:''},
+    {key:'subLabor',  label:'Subcontractors', sell:fc.subLabor.costPlusMargin, cost:fc.subLabor.cost, unit:' hrs'},
+    {key:'misc',      label:'Miscellaneous',  sell:fc.misc.costPlusMargin,     cost:fc.misc.cost,     unit:''}
+  ];
+  var extras = [
+    {label:'Warranty',    v:fc.warrantyAmt},
+    {label:'Trip charge', v:fc.tripCharge},
+    {label:'Freight',     v:fc.freightCost}
+  ];
+
+  /* cents that add up exactly to the Final Estimate figures */
+  var subtotal = r2(fc.subtotalCost);
+  var total = r2(fc.totalCost);
+  var tax = r2(total - subtotal);
+  var alloc = allocateRounded(cats.map(function(c){ return c.sell; }).concat(extras.map(function(e){ return e.v; })), subtotal);
+  cats.forEach(function(c, i){ c.amt = alloc[i]; });
+  extras.forEach(function(e, i){ e.amt = alloc[cats.length + i]; });
+
+  var itemized = detail === 'itemized';
+  var span = itemized ? 3 : 2;
+  function tr(label, qty, amt, cls){
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td>' +
+      (itemized ? '<td class="q">' + qty + '</td>' : '') + '<td class="a">' + fmtCurrency(amt) + '</td></tr>';
+  }
+
+  function itemLines(c){
+    var cfg = LINE_CONFIG[c.key];
+    var factor = c.cost > 0 ? c.sell / c.cost : 1;
+    var isLabor = cfg.columns[0].key === 'scope';
+    var items = [];
+    (data[c.key] || []).forEach(function(r){
+      var exact = cfg.computeTotal(r);
+      if (!(exact > 0)) return;                 /* skips seeded labels with nothing entered */
+      var desc = isLabor ? (r.scope || c.label) : ((r.desc || 'Item') + (r.partNumber ? ' (' + r.partNumber + ')' : ''));
+      var q = parseFloat(isLabor ? r.hours : r.qty);
+      items.push({desc: desc, qty: isFinite(q) ? fmtNum(q) + c.unit : '', exact: exact * factor});
+    });
+    var amts = allocateRounded(items.map(function(it){ return it.exact; }), c.amt);
+    items.forEach(function(it, i){ it.amt = amts[i]; });
+    return items;
+  }
+
+  var rows = '';
+  if (detail === 'lump'){
+    rows += tr('Complete scope of work as described', '', subtotal);
+  } else {
+    cats.forEach(function(c){
+      if (!(c.amt > 0)) return;
+      if (itemized){
+        var items = itemLines(c);
+        rows += '<tr class="grp"><td colspan="3">' + esc(c.label) + '</td></tr>';
+        items.forEach(function(it){ rows += tr(esc(it.desc), esc(it.qty), it.amt); });
+        if (items.length > 1) rows += tr(esc(c.label) + ' subtotal', '', c.amt, 'sub');
+      } else {
+        rows += tr(esc(c.label), '', c.amt);
+      }
+    });
+    if (itemized && extras.some(function(e){ return e.amt > 0; })) rows += '<tr class="grp"><td colspan="3">Other charges</td></tr>';
+    extras.forEach(function(e){ if (e.amt > 0) rows += tr(esc(e.label), '', e.amt); });
+  }
+  if (tax !== 0){
+    var tx = data.final.taxable || {};
+    var partial = Object.keys(tx).some(function(k){ return tx[k] === false; });
+    if (detail !== 'lump') rows += tr('Subtotal', '', subtotal, 'sub');
+    rows += tr('Sales tax (' + fmtNum(parseFloat(data.final.taxPct) || 0) + '%' + (partial ? ' on taxable items' : '') + ')', '', tax);
+  }
+  rows += tr('Total', '', total, 'tot');
+
+  var table = '<table><thead><tr><th>Description</th>' + (itemized ? '<th class="a">Qty</th>' : '') + '<th class="a">Amount</th></tr></thead><tbody>' + rows + '</tbody></table>';
+
+  /* header + meta */
+  var dateObj = parseYMD(M.date);
+  var days = parseInt(P.validDays, 10);
+  var validUntil = '';
+  if (dateObj && days > 0){ var vu = new Date(dateObj.getTime()); vu.setDate(vu.getDate() + days); validUntil = longDate(vu); }
+  var html = '<div class="prop">' +
+    '<div class="prop-head"><div>' +
+      (co.name ? '<div class="prop-co">' + esc(co.name) + '</div>' : '') +
+      (co.address ? '<div class="prop-sub">' + esc(co.address) + '</div>' : '') +
+      (co.contact ? '<div class="prop-sub">' + esc(co.contact) + '</div>' : '') +
+    '</div><div class="prop-title"><div class="prop-h">PROPOSAL</div>' + (dateObj ? '<div>' + esc(longDate(dateObj)) + '</div>' : '') + '</div></div>' +
+    '<div class="prop-meta">' +
+      '<div><span>Prepared for</span><b>' + (M.client ? esc(M.client) : '&nbsp;') + '</b></div>' +
+      '<div><span>Project</span><b>' + esc(current.name || 'Untitled Estimate') + '</b></div>' +
+      (co.preparedBy ? '<div><span>Prepared by</span><b>' + esc(co.preparedBy) + '</b></div>' : '') +
+      (validUntil ? '<div><span>Valid until</span><b>' + esc(validUntil) + '</b></div>' : '') +
+    '</div>';
+
+  var scopeText = (P.scope || '').trim() || (M.scope || '').trim();
+  if (scopeText) html += '<h3>Scope of Work</h3><p class="pre">' + esc(scopeText) + '</p>';
+  html += '<h3>Pricing</h3>' + table;
+  if ((P.inclusions || '').trim()) html += '<h3>Inclusions</h3><p class="pre">' + esc(P.inclusions.trim()) + '</p>';
+  if ((P.exclusions || '').trim()) html += '<h3>Exclusions</h3><p class="pre">' + esc(P.exclusions.trim()) + '</p>';
+
+  var terms = [];
+  if ((P.paymentTerms || '').trim()) terms.push('Payment terms: ' + P.paymentTerms.trim());
+  if (days > 0) terms.push('This proposal is valid for ' + days + ' days' + (dateObj ? ' from the date above' : ' from the date of issue') + '.');
+  if ((P.terms || '').trim()) terms.push(P.terms.trim());
+  if (terms.length) html += '<h3>Terms</h3><p class="pre">' + esc(terms.join('\n\n')) + '</p>';
+
+  html += '<div class="sigs">' +
+    '<div><h3>Accepted by (client)</h3><div class="sig-line"></div><div class="sig-lab">Signature</div><div class="sig-line"></div><div class="sig-lab">Printed name, title and date</div></div>' +
+    '<div><h3>' + (co.name ? 'For ' + esc(co.name) : 'For the contractor') + '</h3><div class="sig-line"></div><div class="sig-lab">Signature</div><div class="sig-line"></div><div class="sig-lab">Printed name, title and date</div></div>' +
+    '</div></div>';
+  return html;
+}
+
+function refreshProposalPreview(){
+  var el = document.getElementById('proposalPreview');
+  if (el) el.innerHTML = buildProposalHtml();
+}
+
+function renderProposalTab(){
+  var P = current.data.proposal, M = current.data.meta;
+  function opt(v, label){ return '<option value="' + v + '"' + (P.detail === v ? ' selected' : '') + '>' + label + '</option>'; }
+  function co(key, label, ph, area){
+    return '<label>' + label + '</label>' + (area
+      ? '<textarea rows="2" data-role="company-field" data-key="' + key + '" placeholder="' + esc(ph) + '">' + esc(company[key]) + '</textarea>'
+      : '<input type="text" value="' + esc(company[key]) + '" data-role="company-field" data-key="' + key + '" placeholder="' + esc(ph) + '">');
+  }
+  function pf(key, label, ph, rows){
+    return '<label>' + label + '</label><textarea rows="' + rows + '" data-role="proposal-field" data-key="' + key + '" placeholder="' + esc(ph) + '">' + esc(P[key]) + '</textarea>';
+  }
+  return ''+
+  '<div class="tab-header"><h2>Client Proposal</h2><div class="hint">Shows sell prices only. Cost and margin never appear here.</div></div>'+
+  '<div class="meta-grid wide">'+
+    co('name', 'Your company', 'Company name', false)+
+    co('address', 'Address', 'Street, city, state, ZIP', true)+
+    co('contact', 'Phone / email', 'Phone and email', false)+
+    co('preparedBy', 'Prepared by', 'Your name and title', false)+
+    '<div class="hint-row">Company details are saved in this browser and reused on every estimate.</div>'+
+    '<label>Prepared for</label><input type="text" value="' + esc(M.client) + '" data-role="meta-field" data-key="client" placeholder="Client / company name">'+
+    '<label>Date</label><input type="date" value="' + esc(M.date) + '" data-role="meta-field" data-key="date">'+
+    '<label>Pricing detail</label><select data-role="proposal-field" data-key="detail">' + opt('lump', 'Lump sum only') + opt('category', 'By category') + opt('itemized', 'Itemized (at sell price)') + '</select>'+
+    pf('scope', 'Scope of work', 'Describe the work being proposed. If left blank, the scope summary from the Final Estimate tab is used.', 5)+
+    pf('inclusions', 'Inclusions', 'What is included', 3)+
+    pf('exclusions', 'Exclusions', 'What is not included', 3)+
+    pf('terms', 'Other terms', 'Warranty, schedule, change orders, etc.', 3)+
+    '<label>Valid for (days)</label><input type="number" min="0" step="1" value="' + esc(P.validDays) + '" data-role="proposal-field" data-key="validDays">'+
+    '<label>Payment terms</label><input type="text" value="' + esc(P.paymentTerms) + '" data-role="proposal-field" data-key="paymentTerms" placeholder="e.g. Net 30">'+
+  '</div>'+
+  '<div class="table-toolbar"><button class="btn btn-primary" data-action="print-proposal">Print / save as PDF</button></div>'+
+  '<div class="preview-label">Preview</div>'+
+  '<div id="proposalPreview" class="prop-screen">' + buildProposalHtml() + '</div>';
+}
+
+/* ---- internal report (all sheets, cost and margin) + printing ---- */
 function buildReportHtml(){
-  var html = '<h1>' + esc(current.name) + '</h1>';
+  var html = '<div class="rpt"><div class="internal-banner">INTERNAL ESTIMATE &mdash; shows cost and margin. Not for client distribution.</div><h1>' + esc(current.name) + '</h1>';
   buildSheets().forEach(function(sh){
     html += '<h2>' + esc(sh.name) + '</h2><table>';
     sh.rows.forEach(function(r){
@@ -1434,17 +1735,21 @@ function buildReportHtml(){
     });
     html += '</table>';
   });
-  return html;
+  return html + '</div>';
 }
 function printReport(){
   var el = document.getElementById('printReport');
-  if (el) el.innerHTML = buildReportHtml();
+  if (!el) return;
+  var mode = printMode || (activeTab === 'proposal' ? 'proposal' : 'internal');
+  el.innerHTML = mode === 'proposal' ? buildProposalHtml() : buildReportHtml();
 }
 window.addEventListener('beforeprint', printReport);
+window.addEventListener('afterprint', function(){ printMode = null; });
 
 function runExport(kind){
   if (kind === 'xlsx') exportXLSX();
-  else if (kind === 'pdf'){ printReport(); window.print(); }
+  else if (kind === 'proposal'){ printMode = 'proposal'; printReport(); window.print(); }
+  else if (kind === 'pdf'){ printMode = 'internal'; printReport(); window.print(); }
   else if (kind === 'csv-zip') exportCSVZip();
   else if (kind === 'json') exportProjectJSON();
 }
