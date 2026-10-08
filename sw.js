@@ -1,12 +1,12 @@
 /*
   ABAS Estimator — service worker
-  Precaches the app shell so the tool works fully offline once it has been
-  opened one time. All estimate data itself lives in localStorage, not here.
+  Network-first for the app's own files, so a redeploy shows up on the next
+  reload; falls back to the cached copy when offline. Estimate data itself
+  lives in localStorage, not here.
 
-  Bump CACHE_VERSION whenever index.html (or any precached file) changes, so
-  returning users pick up the new version instead of a stale cached copy.
+  Bump CACHE_VERSION when you change precached files so old caches are cleared.
 */
-var CACHE_VERSION = 'abas-estimator-v2';
+var CACHE_VERSION = 'abas-estimator-v3';
 var PRECACHE_URLS = [
   './',
   './index.html',
@@ -42,40 +42,37 @@ self.addEventListener('activate', function(event){
   );
 });
 
+function store(req, res){
+  if (res && res.ok){
+    var copy = res.clone();
+    caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy); });
+  }
+  return res;
+}
+
 self.addEventListener('fetch', function(event){
   var req = event.request;
   if (req.method !== 'GET') return;
-
   var url = new URL(req.url);
 
-  // App shell: cache-first, so the tool loads instantly and works offline.
+  // Own files: network first, cache when offline.
   if (url.origin === self.location.origin){
     event.respondWith(
-      caches.match(req).then(function(cached){
-        var network = fetch(req).then(function(res){
-          if (res && res.ok){
-            var copy = res.clone();
-            caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy); });
-          }
-          return res;
-        }).catch(function(){ return cached; });
-        return cached || network;
+      fetch(req).then(function(res){ return store(req, res); }).catch(function(){
+        return caches.match(req).then(function(cached){
+          if (cached) return cached;
+          if (req.mode === 'navigate') return caches.match('./index.html');
+          return Response.error();
+        });
       })
     );
     return;
   }
 
-  // Cross-origin (Google Fonts, etc.): stale-while-revalidate so the app
-  // still renders offline after the first successful load.
+  // Cross-origin (Google Fonts): stale-while-revalidate.
   event.respondWith(
     caches.match(req).then(function(cached){
-      var network = fetch(req).then(function(res){
-        if (res && res.ok){
-          var copy = res.clone();
-          caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy); });
-        }
-        return res;
-      }).catch(function(){ return cached; });
+      var network = fetch(req).then(function(res){ return store(req, res); }).catch(function(){ return cached; });
       return cached || network;
     })
   );
