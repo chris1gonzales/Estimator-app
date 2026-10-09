@@ -6,11 +6,12 @@
 
   Bump CACHE_VERSION when you change precached files so old caches are cleared.
 */
-var CACHE_VERSION = 'abas-estimator-v5';
+var CACHE_VERSION = 'abas-estimator-v8';
 var PRECACHE_URLS = [
   './',
   './index.html',
-  './manifest.webmanifest'
+  './manifest.webmanifest',
+  './ABAS_Estimator-Template.xltm'
 ];
 var OPTIONAL_URLS = [
   './icon-192.png',
